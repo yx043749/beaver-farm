@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>专注农场 - 欢迎</title>
+    <script src="common.js"></script>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-seedling"></i> 专注农场</h1>
+            <p class="subtitle">养成好习惯，种植专属作物，发现神秘菜谱</p>
+        </header>
+
+        <div class="card" style="text-align: center; max-width: 600px; margin: 50px auto;">
+            <div style="font-size: 4rem; color: var(--primary); margin-bottom: 20px;">
+                <i class="fas fa-leaf"></i>
+            </div>
+            
+            <h2 style="margin-bottom: 10px;">欢迎来到专注农场</h2>
+            <p style="color: var(--gray); margin-bottom: 30px;">
+                一个帮助你养成好习惯，专注种植作物，发现神秘菜谱的趣味系统
+            </p>
+            
+            <div style="display: flex; gap: 20px; justify-content: center; margin-bottom: 40px;">
+                <div style="flex: 1; max-width: 250px;">
+                    <div style="font-size: 2.5rem; color: var(--primary); margin-bottom: 15px;">
+                        <i class="fas fa-user-plus"></i>
+                    </div>
+                    <h3>新用户</h3>
+                    <p style="color: var(--gray); font-size: 0.9rem; margin: 10px 0;">
+                        注册新账号，开始你的农场之旅
+                    </p>
+                    <button class="btn btn-primary" style="width: 100%;" onclick="window.location.href='register.html'">
+                        <i class="fas fa-user-plus"></i> 注册账号
+                    </button>
+                </div>
+                
+                <div style="flex: 1; max-width: 250px;">
+                    <div style="font-size: 2.5rem; color: var(--success); margin-bottom: 15px;">
+                        <i class="fas fa-sign-in-alt"></i>
+                    </div>
+                    <h3>老用户</h3>
+                    <p style="color: var(--gray); font-size: 0.9rem; margin: 10px 0;">
+                        登录已有账号，继续你的农场生活
+                    </p>
+                    <button class="btn btn-success" style="width: 100%;" onclick="window.location.href='login.html'">
+                        <i class="fas fa-sign-in-alt"></i> 登录账号
+                    </button>
+                </div>
+            </div>
+            
+            <div style="background: var(--light); padding: 20px; border-radius: var(--radius-md);">
+                <h4><i class="fas fa-info-circle"></i> 系统说明</h4>
+                <div style="text-align: left; margin-top: 15px;">
+                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                        <i class="fas fa-shield-alt" style="color: var(--primary);"></i>
+                        <span>登录有效期30天，过期需要重新登录</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                        <i class="fas fa-mobile-alt" style="color: var(--success);"></i>
+                        <span>支持多设备访问，数据云端同步</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <i class="fas fa-seedling" style="color: var(--accent);"></i>
+                        <span>一次专注种植一种作物，培养好习惯</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="grid grid-3" style="margin-top: 40px;">
+            <div class="card" style="text-align: center;">
+                <i class="fas fa-tasks" style="font-size: 2rem; color: var(--primary); margin-bottom: 15px;"></i>
+                <h3>习惯打卡</h3>
+                <p style="color: var(--gray);">自定义习惯，每日打卡养成好习惯</p>
+            </div>
+            
+            <div class="card" style="text-align: center;">
+                <i class="fas fa-seedling" style="font-size: 2rem; color: var(--success); margin-bottom: 15px;"></i>
+                <h3>作物种植</h3>
+                <p style="color: var(--gray);">专注种植单一作物，体验成长过程</p>
+            </div>
+            
+            <div class="card" style="text-align: center;">
+                <i class="fas fa-scroll" style="font-size: 2rem; color: var(--secondary); margin-bottom: 15px;"></i>
+                <h3>菜谱研发</h3>
+                <p style="color: var(--gray);">用收获的材料研发神秘菜谱</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="notificationContainer"></div>
+</body>
+</html>

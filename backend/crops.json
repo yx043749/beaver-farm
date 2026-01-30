@@ -1,0 +1,62 @@
+[
+    {
+        "id": "carrot",
+        "name": "胡萝卜",
+        "icon": "🥕",
+        "description": "快速生长的根茎类蔬菜",
+        "growthTime": 7,
+        "harvestAmount": 3,
+        "color": "#FF8C00",
+        "difficulty": 1
+    },
+    {
+        "id": "tomato",
+        "name": "番茄",
+        "icon": "🍅",
+        "description": "需要较多阳光的红色果实",
+        "growthTime": 10,
+        "harvestAmount": 5,
+        "color": "#FF4500",
+        "difficulty": 1
+    },
+    {
+        "id": "strawberry",
+        "name": "草莓",
+        "icon": "🍓",
+        "description": "甜美的心形浆果",
+        "growthTime": 14,
+        "harvestAmount": 8,
+        "color": "#FF6B6B",
+        "difficulty": 2
+    },
+    {
+        "id": "potato",
+        "name": "土豆",
+        "icon": "🥔",
+        "description": "地下生长的淀粉类食物",
+        "growthTime": 12,
+        "harvestAmount": 6,
+        "color": "#8B4513",
+        "difficulty": 2
+    },
+    {
+        "id": "corn",
+        "name": "玉米",
+        "icon": "🌽",
+        "description": "高大的谷物类作物",
+        "growthTime": 18,
+        "harvestAmount": 4,
+        "color": "#FFD700",
+        "difficulty": 3
+    },
+    {
+        "id": "grape",
+        "name": "葡萄",
+        "icon": "🍇",
+        "description": "需要支架的藤蔓类水果",
+        "growthTime": 25,
+        "harvestAmount": 10,
+        "color": "#9370DB",
+        "difficulty": 3
+    }
+]

@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>    
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>专注农场 - 主页面</title>
+    <script src="common.js"></script>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h1><i class="fas fa-seedling"></i> 专注农场</h1>
+                    <p class="subtitle">欢迎，<span id="username"></span>！
+                        <span id="loginStatus" style="font-size: 0.9rem; color: var(--gray); margin-left: 10px;"></span>
+                    </p>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn btn-outline btn-small" onclick="checkLoginStatus()">
+                        <i class="fas fa-info-circle"></i> 登录状态
+                    </button>
+                    <button class="btn btn-danger btn-small" onclick="logout()">
+                        <i class="fas fa-sign-out-alt"></i> 退出登录
+                    </button>
+                </div>
+            </div>
+            
+            <div class="nav-bar">
+                <button class="btn btn-primary" onclick="window.location.href='main.html'">
+                    <i class="fas fa-home"></i> 首页
+                </button>
+                <button class="btn btn-secondary" onclick="window.location.href='crops.html'">
+                    <i class="fas fa-seedling"></i> 作物管理
+                </button>
+                <button class="btn btn-secondary" onclick="window.location.href='recipes.html'">
+                    <i class="fas fa-scroll"></i> 仓库与菜谱
+                </button>
+            </div>
+        </header>
+
+        <div class="grid grid-2">
+            <!-- 习惯打卡区域 -->
+            <div class="card">
+                <h2 class="card-title"><i class="fas fa-tasks"></i> 习惯打卡</h2>
+                <div id="habitsList">
+                    <!-- 习惯列表将通过JS动态生成 -->
+                    <div style="text-align: center; padding: 20px; color: var(--gray);">
+                        <i class="fas fa-tasks" style="font-size: 2rem; margin-bottom: 10px;"></i>
+                        <p>加载中...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 作物生长情况 -->
+            <div class="card">
+                <h2 class="card-title"><i class="fas fa-chart-line"></i> 作物生长情况</h2>
+                <div id="cropDisplay">
+                    <!-- 作物信息将通过JS动态生成 -->
+                    <div style="text-align: center; padding: 20px; color: var(--gray);">
+                        <i class="fas fa-seedling" style="font-size: 2rem; margin-bottom: 10px;"></i>
+                        <p>加载中...</p>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 20px; text-align: center;">
+                    <button class="btn btn-success" onclick="window.location.href='crops.html'">
+                        <i class="fas fa-arrow-right"></i> 前往作物管理
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 报表区域 -->
+        <div class="card">
+            <h2 class="card-title"><i class="fas fa-chart-bar"></i> 习惯打卡报表</h2>
+            
+            <div class="nav-bar" style="margin-bottom: 20px;">
+                <button class="btn btn-small active" onclick="showReport('week')">周报</button>
+                <button class="btn btn-small" onclick="showReport('month')">月报</button>
+                <button class="btn btn-small" onclick="showReport('year')">年报</button>
+            </div>
+            
+            <div id="reportContent">
+                <!-- 报表内容将通过JS动态生成 -->
+                <div style="text-align: center; padding: 40px; color: var(--gray);">
+                    <i class="fas fa-chart-pie" style="font-size: 3rem; margin-bottom: 20px;"></i>
+                    <p>加载报表数据...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 统计数据 -->
+        <div class="grid grid-2">
+            <div class="card" style="text-align: center;">
+                <h3><i class="fas fa-box"></i> 收获总数</h3>
+                <div style="font-size: 2.5rem; font-weight: bold; color: var(--accent); margin: 15px 0;">
+                    <span id="totalHarvests">0</span> 个
+                </div>
+            </div>
+            
+            <div class="card" style="text-align: center;">
+                <h3><i class="fas fa-scroll"></i> 菜谱解锁</h3>
+                <div style="font-size: 2.5rem; font-weight: bold; color: var(--secondary); margin: 15px 0;">
+                    <span id="recipeCount">0</span> 个
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="notificationContainer"></div>
+
+    <script>
+        // 动态获取后端地址
+        function getApiBase() {
+            // 优先使用当前页面的协议和主机
+            const currentUrl = window.location.origin;
+            
+            // 如果是本地文件访问，使用默认localhost
+            if (currentUrl === 'file://' || currentUrl.startsWith('file://')) {
+                return 'http://localhost:3000/api';
+            }
+            
+            // 否则使用当前域名
+            return `${currentUrl}/api`;
+        }
+
+        let API_BASE = getApiBase();
+        console.log('API地址:', API_BASE);
+
+        // 网络状态检测
+        const networkStatus = document.createElement('div');
+        networkStatus.className = 'network-status';
+        document.body.appendChild(networkStatus);
+
+        // 检查网络连接
+        function checkNetworkStatus() {
+            if (navigator.onLine) {
+                networkStatus.textContent = '在线';
+                networkStatus.className = 'network-status online';
+                
+                // 隐藏网络状态提示
+                setTimeout(() => {
+                    networkStatus.style.display = 'none';
+                }, 2000);
+            } else {
+                networkStatus.textContent = '离线 - 检查网络连接';
+                networkStatus.className = 'network-status offline';
+            }
+        }
+
+        // 监听网络状态变化
+        window.addEventListener('online', checkNetworkStatus);
+        window.addEventListener('offline', checkNetworkStatus);
+
+        // 初始检查
+        checkNetworkStatus();
+
+        // 修改所有fetch请求，添加错误处理
+        const originalFetch = window.fetch;
+        window.fetch = async function(...args) {
+            try {
+                const response = await originalFetch.apply(this, args);
+                
+                // 检查响应状态
+                if (!response.ok && response.status !== 401) {
+                    showNotification('网络请求失败，请检查服务器状态', 'error');
+                }
+                
+                return response;
+            } catch (error) {
+                console.error('网络请求错误:', error);
+                
+                // 显示具体的错误信息
+                let errorMsg = '网络连接失败';
+                
+                if (error.message.includes('Failed to fetch')) {
+                    errorMsg = `无法连接到服务器，请检查：<br>
+                                1. 后端服务是否启动 (${API_BASE.replace('/api', '')})<br>
+                                2. 网络连接是否正常<br>
+                                3. 防火墙设置`;
+                } else if (error.message.includes('NetworkError')) {
+                    errorMsg = '网络错误，请检查连接';
+                }
+                
+                showNotification(errorMsg, 'error');
+                throw error;
+            }
+        };
+
+        // const API_BASE = 'http://localhost:3000/api';
+        let authToken = localStorage.getItem('authToken');
+        let userData = null;
+        let cropsData = null;
+        let currentReportType = 'week';
+
+        // 检查登录状态
+        if (!authToken) {
+            window.location.href = 'index.html';
+        }
+
+        // 加载页面数据
+        async function loadPageData() {
+            try {
+                // 获取用户数据
+                const userResponse = await fetch(`${API_BASE}/user-data`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+                
+                const userResult = await userResponse.json();
+                if (!userResult.success) {
+                    throw new Error(userResult.error || '获取用户数据失败');
+                }
+                
+                userData = userResult.data;
+                document.getElementById('username').textContent = userData.username;
+
+                // 获取作物数据
+                const cropsResponse = await fetch(`${API_BASE}/crops`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+                
+                const cropsResult = await cropsResponse.json();
+                if (cropsResult.success) {
+                    cropsData = cropsResult.crops;
+                }
+                
+                // 更新页面显示
+                updateUserStats();
+                renderHabitsList();
+                renderCropDisplay();
+                showReport(currentReportType);
+            } catch (error) {
+                console.error('加载页面数据失败:', error);
+                showNotification('加载数据失败，请刷新页面', 'error');
+            }
+        }
+
+        // 检查登录状态
+        async function checkLoginStatus() {
+            try {
+                const response = await fetch(`${API_BASE}/last-login`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    const lastLogin = new Date(data.lastLogin);
+                    const now = new Date();
+                    const daysDiff = Math.floor((now - lastLogin) / (1000 * 60 * 60 * 24));
+                    
+                    alert(`登录状态信息：
+                    
+        用户名: ${userData.username}
+        最后登录: ${lastLogin.toLocaleString()}
+        已登录天数: ${daysDiff}天
+        剩余有效期: ${30 - daysDiff}天
+
+        账号创建: ${new Date(data.createdAt).toLocaleDateString()}`);
+                }
+            } catch (error) {
+                console.error('获取登录状态失败:', error);
+            }
+        }
+
+        // 退出登录
+        async function logout() {
+            if (!confirm('确定要退出登录吗？')) return;
+            
+            try {
+                const response = await fetch(`${API_BASE}/logout`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    showNotification('退出登录成功', 'success');
+                    
+                    // 清除本地存储
+                    localStorage.removeItem('authToken');
+                    localStorage.removeItem('rememberMe');
+                    
+                    setTimeout(() => {
+                        window.location.href = 'index.html';
+                    }, 1000);
+                }
+            } catch (error) {
+                console.error('退出错误:', error);
+                // 即使API调用失败，也清除本地token
+                localStorage.removeItem('authToken');
+                localStorage.removeItem('rememberMe');
+                window.location.href = 'index.html';
+            }
+        }
+
+        // 在loadPageData函数中添加登录状态显示
+        function updateLoginStatus() {
+            if (userData && userData.lastLogin) {
+                const lastLogin = new Date(userData.lastLogin);
+                const now = new Date();
+                const daysDiff = Math.floor((now - lastLogin) / (1000 * 60 * 60 * 24));
+                const remainingDays = 30 - daysDiff;
+                
+                let statusText = `已登录${daysDiff}天`;
+                let statusColor = 'var(--success)';
+                
+                if (remainingDays <= 7) {
+                    statusText += ` (剩余${remainingDays}天)`;
+                    statusColor = 'var(--accent)';
+                }
+                if (remainingDays <= 3) {
+                    statusColor = 'var(--danger)';
+                }
+                
+                document.getElementById('loginStatus').innerHTML = 
+                    `<span style="color: ${statusColor}">${statusText}</span>`;
+            }
+        }
+
+        // 在loadPageData成功加载用户数据后调用
+        // 在 userData = userResult.data; 之后添加：
+        updateLoginStatus();
+
+        // 更新用户统计
+        function updateUserStats() {
+            document.getElementById('streakDays').textContent = userData.habitStreak || 0;
+            document.getElementById('totalHarvests').textContent = userData.totalHarvests || 0;
+            document.getElementById('recipeCount').textContent = userData.discoveredRecipes?.length || 0;
+            document.getElementById('currentHabitCount').textContent = userData.habits?.length || 0;
+            document.getElementById('maxHabits').textContent = userData.maxHabits || 3;
+            
+            // 计算总完成次数
+            const totalCompletions = userData.habits?.reduce((sum, habit) => sum + (habit.totalCompletions || 0), 0) || 0;
+            document.getElementById('totalCompletions').textContent = totalCompletions;
+        }
+
+        // 渲染习惯列表
+        function renderHabitsList() {
+            const container = document.getElementById('habitsList');
+            const habits = userData.habits || [];
+            
+            if (habits.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 30px; color: var(--gray);">
+                        <i class="fas fa-tasks" style="font-size: 2.5rem; margin-bottom: 15px;"></i>
+                        <p>还没有任何习惯</p>
+                        <p style="font-size: 0.9rem; margin-top: 10px;">点击"添加新习惯"按钮开始吧！</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = '';
+            habits.forEach(habit => {
+                const lastCompleted = habit.lastCompleted ? new Date(habit.lastCompleted).toLocaleDateString() : '从未';
+                const today = new Date().toDateString();
+                const lastCompletedDate = habit.lastCompleted ? new Date(habit.lastCompleted).toDateString() : null;
+                const canCheckin = lastCompletedDate !== today;
+                
+                html += `
+                    <div class="habit-item" style="margin-bottom: 15px;">
+                        <div class="habit-info">
+                            <h4>${habit.name}</h4>
+                            <div class="habit-stats">
+                                <span><i class="fas fa-fire"></i> 连续${habit.streak || 0}天</span>
+                                <span><i class="fas fa-check-circle"></i> 完成${habit.totalCompletions || 0}次</span>
+                                <span><i class="fas fa-calendar"></i> 上次: ${lastCompleted}</span>
+                            </div>
+                        </div>
+                        <div>
+                            <button class="btn btn-success btn-small" onclick="checkinHabit('${habit.id}')" ${!canCheckin ? 'disabled' : ''}>
+                                ${canCheckin ? '<i class="fas fa-check"></i> 打卡' : '<i class="fas fa-check-double"></i> 已打卡'}
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+
+        // 渲染作物显示
+        function renderCropDisplay() {
+            const container = document.getElementById('cropDisplay');
+            const currentCrop = userData.crops?.[0];
+            
+            if (!currentCrop || currentCrop.harvested) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 30px;">
+                        <div class="crop-icon">🌱</div>
+                        <h3>当前没有作物在种植</h3>
+                        <p style="color: var(--gray); margin: 15px 0;">快去作物管理页面选择作物开始种植吧！</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            const cropInfo = cropsData?.find(c => c.id === currentCrop.id);
+            if (!cropInfo) {
+                container.innerHTML = `<p style="color: var(--danger);">作物数据加载失败</p>`;
+                return;
+            }
+            
+            const progressPercent = (currentCrop.currentGrowth / cropInfo.growthTime) * 100;
+            const remainingDays = Math.max(0, cropInfo.growthTime - currentCrop.currentGrowth);
+            
+            container.innerHTML = `
+                <div style="text-align: center;">
+                    <div class="crop-icon">${cropInfo.icon}</div>
+                    <h3>${cropInfo.name}</h3>
+                    <p style="color: var(--gray); margin-bottom: 20px;">${cropInfo.description}</p>
+                    
+                    <div class="crop-progress">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                            <span>生长进度</span>
+                            <span>${currentCrop.currentGrowth}/${cropInfo.growthTime}</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${progressPercent}%"></div>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-top: 20px; padding: 15px; background: var(--light); border-radius: var(--radius-md);">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; text-align: center;">
+                            <div>
+                                <div style="font-size: 0.9rem; color: var(--gray);">还需照料</div>
+                                <div style="font-size: 1.2rem; font-weight: bold; color: var(--primary);">${remainingDays}次</div>
+                            </div>
+                            <div>
+                                <div style="font-size: 0.9rem; color: var(--gray);">预计收获</div>
+                                <div style="font-size: 1.2rem; font-weight: bold; color: var(--success);">${cropInfo.harvestAmount}个</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    ${currentCrop.currentGrowth >= cropInfo.growthTime ? 
+                        '<div style="margin-top: 20px; padding: 10px; background: var(--success); color: white; border-radius: var(--radius-md);">作物已成熟，可以收获了！</div>' : 
+                        `<div style="margin-top: 20px; color: var(--gray); font-size: 0.9rem;">
+                            继续打卡习惯来促进作物生长
+                        </div>`
+                    }
+                </div>
+            `;
+        }
+
+        // 显示报表（关联实际数据）
+        function showReport(type) {
+            currentReportType = type;
+            
+            // 更新按钮状态
+            document.querySelectorAll('.nav-bar .btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            const container = document.getElementById('reportContent');
+            const habits = userData.habits || [];
+            
+            if (habits.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: var(--gray);">
+                        <i class="fas fa-chart-line" style="font-size: 3rem; margin-bottom: 20px;"></i>
+                        <p>还没有习惯数据</p>
+                        <p style="font-size: 0.9rem; margin-top: 10px;">添加习惯并开始打卡后，这里会显示统计图表</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // 计算实际数据
+            let labels = [];
+            let data = [];
+            let title = '';
+            
+            // 获取当前日期
+            const now = new Date();
+            
+            switch(type) {
+                case 'week':
+                    // 本周数据
+                    labels = ['一', '二', '三', '四', '五', '六', '日'];
+                    data = [0, 0, 0, 0, 0, 0, 0];
+                    title = '本周打卡情况';
+                    
+                    // 计算本周每天的总打卡次数
+                    habits.forEach(habit => {
+                        if (habit.lastCompleted) {
+                            const lastDate = new Date(habit.lastCompleted);
+                            const dayOfWeek = lastDate.getDay(); // 0=周日, 1=周一...
+                            
+                            // 如果是本周的打卡
+                            const weekStart = new Date(now);
+                            weekStart.setDate(now.getDate() - now.getDay() + 1); // 本周一
+                            weekStart.setHours(0, 0, 0, 0);
+                            
+                            if (lastDate >= weekStart) {
+                                // 调整索引：周一=0, 周二=1, ..., 周日=6
+                                const adjustedIndex = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+                                data[adjustedIndex] += 1;
+                            }
+                        }
+                    });
+                    break;
+                    
+                case 'month':
+                    // 本月数据（按周分组）
+                    labels = ['第1周', '第2周', '第3周', '第4周'];
+                    data = [0, 0, 0, 0];
+                    title = '本月打卡情况';
+                    
+                    habits.forEach(habit => {
+                        if (habit.lastCompleted) {
+                            const lastDate = new Date(habit.lastCompleted);
+                            
+                            // 如果是本月的打卡
+                            if (lastDate.getMonth() === now.getMonth() && 
+                                lastDate.getFullYear() === now.getFullYear()) {
+                                
+                                const weekOfMonth = Math.floor((lastDate.getDate() - 1) / 7);
+                                if (weekOfMonth >= 0 && weekOfMonth < 4) {
+                                    data[weekOfMonth] += 1;
+                                }
+                            }
+                        }
+                    });
+                    break;
+                    
+                case 'year':
+                    // 本年数据（按月分组）
+                    labels = ['1月', '2月', '3月', '4月', '5月', '6月', 
+                            '7月', '8月', '9月', '10月', '11月', '12月'];
+                    data = new Array(12).fill(0);
+                    title = '本年打卡情况';
+                    
+                    habits.forEach(habit => {
+                        if (habit.totalCompletions && habit.createdAt) {
+                            const createdDate = new Date(habit.createdAt);
+                            
+                            // 如果是本年度创建的习惯
+                            if (createdDate.getFullYear() === now.getFullYear()) {
+                                // 这里简化处理，实际应该统计每月的打卡次数
+                                // 由于没有存储详细的打卡历史，这里使用习惯创建月的数据
+                                const month = createdDate.getMonth();
+                                data[month] += habit.totalCompletions || 0;
+                            }
+                        }
+                    });
+                    break;
+            }
+            
+            const maxValue = Math.max(...data, 1); // 至少为1，避免除零
+            
+            container.innerHTML = `
+                <h3 style="text-align: center; margin-bottom: 20px; color: var(--dark);">${title}</h3>
+                <div class="report-chart">
+                    ${data.map((value, index) => `
+                        <div style="display: flex; flex-direction: column; align-items: center; height: 100%;">
+                            <div class="chart-bar" style="height: ${(value / maxValue) * 100}%;" 
+                                title="${labels[index]}: ${value}次打卡">
+                                ${value > 0 ? `<div style="position: absolute; top: -25px; color: var(--primary); font-weight: bold;">${value}</div>` : ''}
+                            </div>
+                            <div class="chart-label">${labels[index]}</div>
+                        </div>
+                    `).join('')}
+                </div>
+                <div style="text-align: center; margin-top: 20px;">
+                    <div style="display: inline-flex; align-items: center; gap: 15px; background: var(--light); padding: 10px 20px; border-radius: var(--radius-md);">
+                        <div>
+                            <div style="font-size: 0.9rem; color: var(--gray);">总打卡</div>
+                            <div style="font-size: 1.2rem; font-weight: bold; color: var(--primary);">
+                                ${data.reduce((a, b) => a + b, 0)}次
+                            </div>
+                        </div>
+                        <div style="width: 1px; height: 30px; background: #ddd;"></div>
+                        <div>
+                            <div style="font-size: 0.9rem; color: var(--gray);">日均</div>
+                            <div style="font-size: 1.2rem; font-weight: bold; color: var(--success);">
+                                ${(data.reduce((a, b) => a + b, 0) / data.length).toFixed(1)}次
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div style="margin-top: 15px; text-align: center; color: var(--gray); font-size: 0.9rem;">
+                    <i class="fas fa-info-circle"></i> 数据基于你的习惯打卡记录
+                </div>
+            `;
+        }
+
+        // 打卡习惯
+        async function checkinHabit(habitId) {
+            try {
+                const response = await fetch(`${API_BASE}/checkin-habit`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ habitId })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showNotification('习惯打卡成功！', 'success');
+                    
+                    // 重新加载数据
+                    const userResponse = await fetch(`${API_BASE}/user-data`, {
+                        headers: {
+                            'Authorization': `Bearer ${authToken}`
+                        }
+                    });
+                    
+                    const userResult = await userResponse.json();
+                    if (userResult.success) {
+                        userData = userResult.data;
+                        updateUserStats();
+                        renderHabitsList();
+                        renderCropDisplay();
+                    }
+                } else {
+                    showNotification(data.error || '打卡失败', 'error');
+                }
+            } catch (error) {
+                console.error('打卡错误:', error);
+                showNotification('打卡失败，请检查网络', 'error');
+            }
+        }
+
+        // 添加新习惯
+        async function addNewHabit() {
+            const habitName = prompt('请输入新习惯的名称：');
+            if (!habitName || habitName.trim() === '') return;
+            
+            try {
+                const response = await fetch(`${API_BASE}/add-habit`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ habitName: habitName.trim() })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showNotification('习惯添加成功！', 'success');
+                    
+                    // 重新加载数据
+                    const userResponse = await fetch(`${API_BASE}/user-data`, {
+                        headers: {
+                            'Authorization': `Bearer ${authToken}`
+                        }
+                    });
+                    
+                    const userResult = await userResponse.json();
+                    if (userResult.success) {
+                        userData = userResult.data;
+                        updateUserStats();
+                        renderHabitsList();
+                    }
+                } else {
+                    showNotification(data.error || '添加失败', 'error');
+                }
+            } catch (error) {
+                console.error('添加习惯错误:', error);
+                showNotification('添加失败，请检查网络', 'error');
+            }
+        }
+
+        // 退出登录
+        function logout() {
+            localStorage.removeItem('authToken');
+            window.location.href = 'index.html';
+        }
+
+        // 显示通知
+        function showNotification(message, type = 'info') {
+            const container = document.getElementById('notificationContainer');
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+                    <div>${message}</div>
+                </div>
+            `;
+            
+            container.appendChild(notification);
+            
+            setTimeout(() => notification.classList.add('show'), 10);
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => notification.remove(), 500);
+            }, 3000);
+        }
+
+        // 页面加载完成
+        window.addEventListener('load', loadPageData);
+    </script>
+</body>
+</html>

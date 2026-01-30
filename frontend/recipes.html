@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>专注农场 - 仓库与菜谱</title>
+    <script src="common.js"></script>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h1><i class="fas fa-scroll"></i> 仓库与菜谱研发</h1>
+                    <p class="subtitle">管理材料，研发神秘菜谱</p>
+                </div>
+                <div>
+                    <button class="btn btn-primary btn-small" onclick="window.location.href='main.html'">
+                        <i class="fas fa-arrow-left"></i> 返回首页
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <div class="grid grid-2">
+            <!-- 材料仓库 -->
+            <div class="card">
+                <h2 class="card-title"><i class="fas fa-warehouse"></i> 材料仓库</h2>
+                <p style="color: var(--gray); margin-bottom: 20px;">
+                    收获的作物会存放在这里，用于菜谱研发
+                </p>
+                
+                <div id="storageList" class="grid grid-3">
+                    <!-- 仓库列表将通过JS动态生成 -->
+                    <div style="text-align: center; padding: 20px; color: var(--gray);">
+                        <i class="fas fa-box-open" style="font-size: 2rem; margin-bottom: 10px;"></i>
+                        <p>加载中...</p>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 20px; padding: 15px; background: var(--light); border-radius: var(--radius-md);">
+                    <h4><i class="fas fa-lightbulb"></i> 如何获得材料</h4>
+                    <ul style="margin-top: 10px; padding-left: 20px; color: var(--gray);">
+                        <li>种植并收获作物</li>
+                        <li>每天打卡习惯促进作物生长</li>
+                        <li>作物成熟后即可收获</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- 修改菜谱研发部分 -->
+            <div class="card">
+                <h2 class="card-title"><i class="fas fa-flask"></i> 菜谱研发</h2>
+                <p style="color: var(--gray); margin-bottom: 20px;">
+                    通过线索探索神秘菜谱，使用仓库材料进行尝试
+                </p>
+                
+                <div id="recipesList">
+                    <!-- 菜谱列表将通过JS动态生成 -->
+                </div>
+                
+                <!-- 添加研发区域 -->
+                <div class="card" style="margin-top: 20px; background: #F8F9FA;">
+                    <h3 class="card-title"><i class="fas fa-search"></i> 配方探索</h3>
+                    <div id="researchArea">
+                        <p style="color: var(--gray); margin-bottom: 15px;">
+                            选择材料进行尝试，系统会给出线索提示
+                        </p>
+                        
+                        <div class="grid grid-3" id="researchIngredients">
+                            <!-- 材料选择器 -->
+                        </div>
+                        
+                        <div style="margin-top: 20px;">
+                            <button class="btn btn-primary" id="tryResearchBtn" onclick="tryResearch()" disabled>
+                                <i class="fas fa-flask"></i> 尝试研发
+                            </button>
+                            <button class="btn btn-danger btn-small" onclick="clearResearch()">
+                                <i class="fas fa-trash"></i> 清空选择
+                            </button>
+                        </div>
+                        
+                        <div id="researchResult" style="margin-top: 20px;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 研发进度 -->
+        <div class="card">
+            <h2 class="card-title"><i class="fas fa-chart-pie"></i> 研发进度</h2>
+            <div id="researchProgress">
+                <!-- 研发进度将通过JS动态生成 -->
+                <div style="text-align: center; padding: 20px; color: var(--gray);">
+                    <i class="fas fa-chart-bar" style="font-size: 2rem; margin-bottom: 10px;"></i>
+                    <p>加载中...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="notificationContainer"></div>
+
+    <script>
+        // 动态获取后端地址
+        function getApiBase() {
+            // 优先使用当前页面的协议和主机
+            const currentUrl = window.location.origin;
+            
+            // 如果是本地文件访问，使用默认localhost
+            if (currentUrl === 'file://' || currentUrl.startsWith('file://')) {
+                return 'http://localhost:3000/api';
+            }
+            
+            // 否则使用当前域名
+            return `${currentUrl}/api`;
+        }
+
+        let API_BASE = getApiBase();
+        console.log('API地址:', API_BASE);
+
+        // 网络状态检测
+        const networkStatus = document.createElement('div');
+        networkStatus.className = 'network-status';
+        document.body.appendChild(networkStatus);
+
+        // 检查网络连接
+        function checkNetworkStatus() {
+            if (navigator.onLine) {
+                networkStatus.textContent = '在线';
+                networkStatus.className = 'network-status online';
+                
+                // 隐藏网络状态提示
+                setTimeout(() => {
+                    networkStatus.style.display = 'none';
+                }, 2000);
+            } else {
+                networkStatus.textContent = '离线 - 检查网络连接';
+                networkStatus.className = 'network-status offline';
+            }
+        }
+
+        // 监听网络状态变化
+        window.addEventListener('online', checkNetworkStatus);
+        window.addEventListener('offline', checkNetworkStatus);
+
+        // 初始检查
+        checkNetworkStatus();
+
+        // 修改所有fetch请求，添加错误处理
+        const originalFetch = window.fetch;
+        window.fetch = async function(...args) {
+            try {
+                const response = await originalFetch.apply(this, args);
+                
+                // 检查响应状态
+                if (!response.ok && response.status !== 401) {
+                    showNotification('网络请求失败，请检查服务器状态', 'error');
+                }
+                
+                return response;
+            } catch (error) {
+                console.error('网络请求错误:', error);
+                
+                // 显示具体的错误信息
+                let errorMsg = '网络连接失败';
+                
+                if (error.message.includes('Failed to fetch')) {
+                    errorMsg = `无法连接到服务器，请检查：<br>
+                                1. 后端服务是否启动 (${API_BASE.replace('/api', '')})<br>
+                                2. 网络连接是否正常<br>
+                                3. 防火墙设置`;
+                } else if (error.message.includes('NetworkError')) {
+                    errorMsg = '网络错误，请检查连接';
+                }
+                
+                showNotification(errorMsg, 'error');
+                throw error;
+            }
+        };
+
+        // const API_BASE = 'http://localhost:3000/api';
+        let authToken = localStorage.getItem('authToken');
+        let userData = null;
+        let cropsData = null;
+        let recipesData = null;
+
+        // 检查登录状态
+        if (!authToken) {
+            window.location.href = 'index.html';
+        }
+
+        // 渲染研发材料选择器
+        function renderResearchIngredients() {
+            const container = document.getElementById('researchIngredients');
+            const storage = userData.storage || {};
+            
+            if (!cropsData) return;
+            
+            container.innerHTML = cropsData.map(crop => {
+                const quantity = storage[crop.id] || 0;
+                
+                return `
+                    <div class="crop-option" onclick="toggleResearchIngredient('${crop.id}')" 
+                        style="cursor: pointer; ${quantity === 0 ? 'opacity: 0.5;' : ''}">
+                        <div style="font-size: 2rem; margin-bottom: 10px;">${crop.icon}</div>
+                        <div style="font-weight: bold; margin-bottom: 5px;">${crop.name}</div>
+                        <div style="color: var(--gray); font-size: 0.9rem;">
+                            库存: <span style="color: ${quantity > 0 ? 'var(--primary)' : 'var(--danger)'}; font-weight: bold;">${quantity}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        let selectedIngredients = [];
+
+        // 切换研发材料
+        function toggleResearchIngredient(cropId) {
+            const quantity = (userData.storage || {})[cropId] || 0;
+            if (quantity === 0) return;
+            
+            const index = selectedIngredients.indexOf(cropId);
+            if (index === -1) {
+                selectedIngredients.push(cropId);
+            } else {
+                selectedIngredients.splice(index, 1);
+            }
+            
+            updateResearchButton();
+            highlightSelectedIngredients();
+        }
+
+        // 高亮选中的材料
+        function highlightSelectedIngredients() {
+            document.querySelectorAll('#researchIngredients .crop-option').forEach(option => {
+                const cropId = option.onclick.toString().match(/'([^']+)'/)[1];
+                if (selectedIngredients.includes(cropId)) {
+                    option.style.borderColor = 'var(--primary)';
+                    option.style.boxShadow = '0 0 0 2px rgba(255, 158, 109, 0.3)';
+                } else {
+                    option.style.borderColor = '';
+                    option.style.boxShadow = '';
+                }
+            });
+        }
+
+        // 更新研发按钮状态
+        function updateResearchButton() {
+            const btn = document.getElementById('tryResearchBtn');
+            btn.disabled = selectedIngredients.length === 0;
+        }
+
+        // 尝试研发
+        async function tryResearch() {
+            if (selectedIngredients.length === 0) return;
+            
+            // 找到第一个未解锁的菜谱
+            const undiscoveredRecipe = recipesData?.find(recipe => 
+                !userData.discoveredRecipes.includes(recipe.id)
+            );
+            
+            if (!undiscoveredRecipe) {
+                showModal('提示', '所有菜谱都已经解锁了！');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/research-recipe`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ 
+                        recipeId: undiscoveredRecipe.id,
+                        usedIngredients: selectedIngredients
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showModal('研发成功', `
+                        <div style="text-align: center; padding: 20px;">
+                            <div style="font-size: 3rem; margin-bottom: 15px;">${data.recipe.icon}</div>
+                            <h3 style="color: var(--success); margin-bottom: 10px;">${data.recipe.name}</h3>
+                            <p style="color: var(--gray); margin-bottom: 20px;">${data.recipe.description}</p>
+                            
+                            <div style="background: var(--light); padding: 15px; border-radius: var(--radius-md); margin-bottom: 20px;">
+                                <h4 style="margin-bottom: 10px;">所需材料：</h4>
+                                <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;">
+                                    ${data.recipe.ingredients.map(ing => {
+                                        const crop = cropsData?.find(c => c.id === ing.cropId);
+                                        return `
+                                            <div style="display: flex; align-items: center; gap: 5px; background: white; padding: 8px 12px; border-radius: var(--radius-sm);">
+                                                <span style="font-size: 1.2rem;">${crop?.icon}</span>
+                                                <span>${crop?.name} ×${ing.quantity}</span>
+                                            </div>
+                                        `;
+                                    }).join('')}
+                                </div>
+                            </div>
+                            
+                            <p style="color: var(--success); font-weight: bold;">
+                                <i class="fas fa-award"></i> 解锁新菜谱！习惯位+1
+                            </p>
+                        </div>
+                    `);
+                    
+                    // 重新加载数据
+                    await loadPageData();
+                    
+                } else {
+                    // 研发失败，显示线索
+                    showModal('研发失败', `
+                        <div style="text-align: center; padding: 20px;">
+                            <div style="font-size: 3rem; color: var(--gray); margin-bottom: 15px;">🔍</div>
+                            <h3 style="color: var(--accent); margin-bottom: 15px;">继续探索</h3>
+                            <p style="color: var(--gray); margin-bottom: 20px;">${data.message}</p>
+                            
+                            ${data.clue ? `
+                                <div style="background: #FFF8E1; padding: 15px; border-radius: var(--radius-md); border-left: 4px solid var(--accent);">
+                                    <h4 style="color: var(--accent); margin-bottom: 10px;">
+                                        <i class="fas fa-lightbulb"></i> 线索提示
+                                    </h4>
+                                    <p>${data.clue}</p>
+                                    ${data.hint ? `<p style="margin-top: 10px; font-size: 0.9rem; color: var(--gray);">${data.hint}</p>` : ''}
+                                </div>
+                            ` : ''}
+                            
+                            <p style="margin-top: 20px; color: var(--gray); font-size: 0.9rem;">
+                                尝试不同的材料组合，找出正确的配方！
+                            </p>
+                        </div>
+                    `);
+                }
+                
+            } catch (error) {
+                console.error('研发错误:', error);
+                showNotification('研发失败，请检查网络', 'error');
+            }
+        }
+
+        // 清空研发选择
+        function clearResearch() {
+            selectedIngredients = [];
+            updateResearchButton();
+            highlightSelectedIngredients();
+        }
+
+        // 显示模态框函数
+        function showModal(title, content) {
+            const modalHtml = `
+                <div class="modal-overlay active">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h3 class="modal-title">${title}</h3>
+                            <button class="modal-close" onclick="closeModal()">&times;</button>
+                        </div>
+                        <div class="modal-body">
+                            ${content}
+                        </div>
+                        <div class="modal-footer">
+                            <button class="btn btn-primary" onclick="closeModal()">确定</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            const modalContainer = document.createElement('div');
+            modalContainer.id = 'customModal';
+            modalContainer.innerHTML = modalHtml;
+            document.body.appendChild(modalContainer);
+        }
+
+        // 关闭模态框
+        function closeModal() {
+            const modal = document.getElementById('customModal');
+            if (modal) {
+                modal.querySelector('.modal-overlay').classList.remove('active');
+                setTimeout(() => modal.remove(), 300);
+            }
+        }
+
+        // 加载页面数据
+        async function loadPageData() {
+            try {
+                // 获取用户数据
+                const userResponse = await fetch(`${API_BASE}/user-data`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+                
+                const userResult = await userResponse.json();
+                if (!userResult.success) {
+                    throw new Error(userResult.error || '获取用户数据失败');
+                }
+                
+                userData = userResult.data;
+                
+                // 获取作物数据
+                const cropsResponse = await fetch(`${API_BASE}/crops`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+                
+                const cropsResult = await cropsResponse.json();
+                if (cropsResult.success) {
+                    cropsData = cropsResult.crops;
+                }
+                
+                // 获取菜谱数据
+                const recipesResponse = await fetch(`${API_BASE}/recipes`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+                
+                const recipesResult = await recipesResponse.json();
+                if (recipesResult.success) {
+                    recipesData = recipesResult.recipes;
+                }
+                
+                // 更新页面显示
+                renderStorageList();
+                renderRecipesList();
+                renderResearchProgress();
+                renderResearchIngredients();
+                
+            } catch (error) {
+                console.error('加载页面数据失败:', error);
+                showNotification('加载数据失败，请刷新页面', 'error');
+            }
+        }
+
+        // 渲染仓库列表
+        function renderStorageList() {
+            const container = document.getElementById('storageList');
+            const storage = userData.storage || {};
+            
+            // 过滤出有库存的作物
+            const items = [];
+            if (cropsData) {
+                cropsData.forEach(crop => {
+                    const quantity = storage[crop.id] || 0;
+                    if (quantity > 0) {
+                        items.push({ crop, quantity });
+                    }
+                });
+            }
+            
+            if (items.length === 0) {
+                container.innerHTML = `
+                    <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: var(--gray);">
+                        <i class="fas fa-box-open" style="font-size: 3rem; margin-bottom: 15px;"></i>
+                        <h3>仓库空空如也</h3>
+                        <p style="margin-top: 10px;">快去种植作物并收获吧！</p>
+                        <button class="btn btn-primary" style="margin-top: 20px;" onclick="window.location.href='crops.html'">
+                            <i class="fas fa-seedling"></i> 前往种植
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = items.map(item => `
+                <div class="storage-item" style="text-align: center;">
+                    <div style="font-size: 2.5rem; margin-bottom: 10px;">${item.crop.icon}</div>
+                    <h4>${item.crop.name}</h4>
+                    <div style="font-size: 1.5rem; font-weight: bold; color: var(--primary); margin: 10px 0;">
+                        ${item.quantity}个
+                    </div>
+                    <div style="font-size: 0.9rem; color: var(--gray);">
+                        收获量: ${item.crop.harvestAmount}个/次
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // 渲染菜谱列表
+        function renderRecipesList() {
+            const container = document.getElementById('recipesList');
+            if (!recipesData) {
+                container.innerHTML = '<p style="color: var(--danger);">菜谱数据加载失败</p>';
+                return;
+            }
+            
+            const discoveredRecipes = userData.discoveredRecipes || [];
+            
+            container.innerHTML = recipesData.map(recipe => {
+                const isDiscovered = discoveredRecipes.includes(recipe.id);
+                
+                // 检查材料是否足够
+                let canResearch = true;
+                let missingIngredients = [];
+                
+                if (!isDiscovered) {
+                    recipe.ingredients.forEach(ing => {
+                        const crop = cropsData?.find(c => c.id === ing.cropId);
+                        const quantity = (userData.storage || {})[ing.cropId] || 0;
+                        
+                        if (quantity < ing.quantity) {
+                            canResearch = false;
+                            missingIngredients.push(`${crop?.name} ${quantity}/${ing.quantity}`);
+                        }
+                    });
+                }
+                
+                return `
+                    <div class="recipe-item ${isDiscovered ? 'unlocked' : ''}" style="margin-bottom: 15px;">
+                        <div style="display: flex; justify-content: space-between; align-items: start;">
+                            <div>
+                                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                                    <span style="font-size: 1.5rem;">${isDiscovered ? recipe.icon : '❓'}</span>
+                                    <h3 style="margin: 0;">${isDiscovered ? recipe.name : '神秘菜谱'}</h3>
+                                    <span style="background: ${isDiscovered ? 'var(--success)' : 'var(--primary)'}; 
+                                          color: white; padding: 3px 10px; border-radius: 12px; font-size: 0.8rem;">
+                                        ${isDiscovered ? '已解锁' : '难度 ' + recipe.difficulty}
+                                    </span>
+                                </div>
+                                
+                                <p style="color: var(--gray); margin-bottom: 15px;">
+                                    ${isDiscovered ? recipe.description : recipe.hints?.[0] || '未知的菜谱，等待研发...'}
+                                </p>
+                                
+                                ${isDiscovered ? `
+                                    <div style="margin-top: 15px;">
+                                        <h4 style="margin-bottom: 8px; font-size: 1rem;">所需材料：</h4>
+                                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                                            ${recipe.ingredients.map(ing => {
+                                                const crop = cropsData?.find(c => c.id === ing.cropId);
+                                                return `
+                                                    <div style="display: flex; align-items: center; gap: 5px; 
+                                                         background: var(--light); padding: 5px 10px; border-radius: var(--radius-sm);">
+                                                        <span>${crop?.icon}</span>
+                                                        <span>${crop?.name} ×${ing.quantity}</span>
+                                                    </div>
+                                                `;
+                                            }).join('')}
+                                        </div>
+                                    </div>
+                                ` : `
+                                    <div style="margin-top: 15px;">
+                                        <h4 style="margin-bottom: 8px; font-size: 1rem;">研发所需：</h4>
+                                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                                            ${recipe.ingredients.map(ing => {
+                                                const crop = cropsData?.find(c => c.id === ing.cropId);
+                                                const quantity = (userData.storage || {})[ing.cropId] || 0;
+                                                const hasEnough = quantity >= ing.quantity;
+                                                
+                                                return `
+                                                    <div style="display: flex; align-items: center; gap: 5px; 
+                                                         background: ${hasEnough ? '#E8F5E9' : '#FFEBEE'}; 
+                                                         padding: 5px 10px; border-radius: var(--radius-sm);">
+                                                        <span>${crop?.icon}</span>
+                                                        <span>${crop?.name} ×${ing.quantity}</span>
+                                                        <span style="color: ${hasEnough ? 'var(--success)' : 'var(--danger)'}; 
+                                                              font-weight: bold;">(${quantity})</span>
+                                                    </div>
+                                                `;
+                                            }).join('')}
+                                        </div>
+                                        
+                                        ${missingIngredients.length > 0 ? `
+                                            <div style="color: var(--danger); font-size: 0.9rem; margin-top: 10px;">
+                                                <i class="fas fa-exclamation-triangle"></i>
+                                                缺少材料: ${missingIngredients.join(', ')}
+                                            </div>
+                                        ` : ''}
+                                    </div>
+                                `}
+                            </div>
+                        </div>
+                        
+                        ${!isDiscovered && canResearch ? `
+                            <div style="margin-top: 15px; text-align: center;">
+                                <button class="btn btn-success" onclick="researchRecipe('${recipe.id}')">
+                                    <i class="fas fa-flask"></i> 开始研发
+                                </button>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // 渲染研发进度
+        function renderResearchProgress() {
+            const container = document.getElementById('researchProgress');
+            const discoveredCount = (userData.discoveredRecipes || []).length;
+            const totalCount = recipesData?.length || 0;
+            const progressPercent = totalCount > 0 ? (discoveredCount / totalCount) * 100 : 0;
+            
+            container.innerHTML = `
+                <div style="text-align: center;">
+                    <div style="font-size: 3rem; margin-bottom: 20px;">
+                        ${discoveredCount}/${totalCount}
+                    </div>
+                    
+                    <div style="margin: 20px 0;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                            <span>研发进度</span>
+                            <span>${Math.round(progressPercent)}%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${progressPercent}%"></div>
+                        </div>
+                    </div>
+                    
+                    <div style="background: var(--light); padding: 20px; border-radius: var(--radius-md); margin-top: 20px;">
+                        <h4><i class="fas fa-award"></i> 研发奖励</h4>
+                        <div style="margin-top: 10px;">
+                            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                                <i class="fas fa-check-circle" style="color: var(--success);"></i>
+                                <span>每解锁一个菜谱，增加一个习惯位</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <i class="fas fa-seedling" style="color: var(--primary);"></i>
+                                <span>当前习惯位: ${userData.maxHabits || 3}个</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // 研发菜谱
+        async function researchRecipe(recipeId) {
+            const recipe = recipesData?.find(r => r.id === recipeId);
+            if (!recipe) {
+                showNotification('菜谱不存在', 'error');
+                return;
+            }
+            
+            if (!confirm(`确定要研发"${recipe.name}"吗？将会消耗所需的材料。`)) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/research-recipe`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ 
+                        recipeId,
+                        ingredients: recipe.ingredients 
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showNotification(`恭喜！成功解锁菜谱：${recipe.icon} ${recipe.name}！`, 'success');
+                    
+                    // 重新加载数据
+                    await loadPageData();
+                } else {
+                    showNotification(data.error || '研发失败', 'error');
+                }
+            } catch (error) {
+                console.error('研发菜谱错误:', error);
+                showNotification('研发失败，请检查网络', 'error');
+            }
+        }
+
+        // 显示通知
+        function showNotification(message, type = 'info') {
+            const container = document.getElementById('notificationContainer');
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+                    <div>${message}</div>
+                </div>
+            `;
+            
+            container.appendChild(notification);
+            
+            setTimeout(() => notification.classList.add('show'), 10);
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => notification.remove(), 500);
+            }, 3000);
+        }
+
+        // 页面加载完成
+        window.addEventListener('load', loadPageData);
+    </script>
+</body>
+</html>

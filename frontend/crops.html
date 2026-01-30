@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>专注农场 - 作物管理</title>
+    <script src="common.js"></script>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h1><i class="fas fa-seedling"></i> 作物管理</h1>
+                    <p class="subtitle">选择你的专属作物</p>
+                </div>
+                <div>
+                    <button class="btn btn-primary btn-small" onclick="window.location.href='main.html'">
+                        <i class="fas fa-arrow-left"></i> 返回首页
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <div class="card">
+            <h2 class="card-title"><i class="fas fa-hand-pointer"></i> 选择作物</h2>
+            <p style="color: var(--gray); margin-bottom: 20px;">
+                一次只能种植一种作物，选择后需要每天打卡习惯来促进生长
+            </p>
+            
+            <div id="cropsList" class="grid grid-3">
+                <!-- 作物列表将通过JS动态生成 -->
+                <div style="text-align: center; padding: 20px; color: var(--gray);">
+                    <i class="fas fa-seedling" style="font-size: 2rem; margin-bottom: 10px;"></i>
+                    <p>加载中...</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-2">
+            <!-- 当前作物状态 -->
+            <div class="card">
+                <h2 class="card-title"><i class="fas fa-chart-line"></i> 当前作物状态</h2>
+                <div id="currentCropStatus">
+                    <!-- 当前作物状态将通过JS动态生成 -->
+                    <div style="text-align: center; padding: 20px; color: var(--gray);">
+                        <i class="fas fa-info-circle" style="font-size: 2rem; margin-bottom: 10px;"></i>
+                        <p>加载中...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 习惯管理 -->
+            <div class="card">
+                <h2 class="card-title"><i class="fas fa-tasks"></i> 习惯管理</h2>
+                <div id="habitsManagement">
+                    <!-- 习惯管理将通过JS动态生成 -->
+                    <div style="text-align: center; padding: 20px; color: var(--gray);">
+                        <i class="fas fa-tasks" style="font-size: 2rem; margin-bottom: 10px;"></i>
+                        <p>加载中...</p>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 20px;">
+                    <button class="btn btn-primary" onclick="addNewHabit()" id="addHabitBtn">
+                        <i class="fas fa-plus"></i> 添加新习惯
+                    </button>
+                    <div style="color: var(--gray); font-size: 0.9rem; margin-top: 10px;">
+                        当前习惯位：<span id="currentHabitCount">0</span>/<span id="maxHabits">3</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="notificationContainer"></div>
+
+    <script>
+        // 动态获取后端地址
+        function getApiBase() {
+            // 优先使用当前页面的协议和主机
+            const currentUrl = window.location.origin;
+            
+            // 如果是本地文件访问，使用默认localhost
+            if (currentUrl === 'file://' || currentUrl.startsWith('file://')) {
+                return 'http://localhost:3000/api';
+            }
+            
+            // 否则使用当前域名
+            return `${currentUrl}/api`;
+        }
+
+        let API_BASE = getApiBase();
+        console.log('API地址:', API_BASE);
+
+        // 网络状态检测
+        const networkStatus = document.createElement('div');
+        networkStatus.className = 'network-status';
+        document.body.appendChild(networkStatus);
+
+        // 检查网络连接
+        function checkNetworkStatus() {
+            if (navigator.onLine) {
+                networkStatus.textContent = '在线';
+                networkStatus.className = 'network-status online';
+                
+                // 隐藏网络状态提示
+                setTimeout(() => {
+                    networkStatus.style.display = 'none';
+                }, 2000);
+            } else {
+                networkStatus.textContent = '离线 - 检查网络连接';
+                networkStatus.className = 'network-status offline';
+            }
+        }
+
+        // 监听网络状态变化
+        window.addEventListener('online', checkNetworkStatus);
+        window.addEventListener('offline', checkNetworkStatus);
+
+        // 初始检查
+        checkNetworkStatus();
+
+        // 修改所有fetch请求，添加错误处理
+        const originalFetch = window.fetch;
+        window.fetch = async function(...args) {
+            try {
+                const response = await originalFetch.apply(this, args);
+                
+                // 检查响应状态
+                if (!response.ok && response.status !== 401) {
+                    showNotification('网络请求失败，请检查服务器状态', 'error');
+                }
+                
+                return response;
+            } catch (error) {
+                console.error('网络请求错误:', error);
+                
+                // 显示具体的错误信息
+                let errorMsg = '网络连接失败';
+                
+                if (error.message.includes('Failed to fetch')) {
+                    errorMsg = `无法连接到服务器，请检查：<br>
+                                1. 后端服务是否启动 (${API_BASE.replace('/api', '')})<br>
+                                2. 网络连接是否正常<br>
+                                3. 防火墙设置`;
+                } else if (error.message.includes('NetworkError')) {
+                    errorMsg = '网络错误，请检查连接';
+                }
+                
+                showNotification(errorMsg, 'error');
+                throw error;
+            }
+        };
+        // const API_BASE = 'http://localhost:3000/api';
+        let authToken = localStorage.getItem('authToken');
+        let userData = null;
+        let cropsData = null;
+
+        // 检查登录状态
+        if (!authToken) {
+            window.location.href = 'index.html';
+        }
+
+        // 加载页面数据
+        async function loadPageData() {
+            try {
+                // 获取用户数据
+                const userResponse = await fetch(`${API_BASE}/user-data`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+                
+                const userResult = await userResponse.json();
+                if (!userResult.success) {
+                    throw new Error(userResult.error || '获取用户数据失败');
+                }
+                
+                userData = userResult.data;
+                
+                // 获取作物数据
+                const cropsResponse = await fetch(`${API_BASE}/crops`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+                
+                const cropsResult = await cropsResponse.json();
+                if (cropsResult.success) {
+                    cropsData = cropsResult.crops;
+                }
+                
+                // 更新页面显示
+                renderCropsList();
+                renderCurrentCropStatus();
+                renderHabitsManagement();
+                
+            } catch (error) {
+                console.error('加载页面数据失败:', error);
+                showNotification('加载数据失败，请刷新页面', 'error');
+            }
+        }
+
+        // 渲染作物列表
+        function renderCropsList() {
+            const container = document.getElementById('cropsList');
+            if (!cropsData) {
+                container.innerHTML = '<p style="color: var(--danger);">作物数据加载失败</p>';
+                return;
+            }
+            
+            const currentCrop = userData.crops?.[0];
+            const currentCropId = currentCrop && !currentCrop.harvested ? currentCrop.id : null;
+            
+            container.innerHTML = cropsData.map(crop => {
+                const isCurrentCrop = crop.id === currentCropId;
+                const canSelect = !currentCropId || isCurrentCrop;
+                
+                return `
+                    <div class="crop-option ${isCurrentCrop ? 'selected' : ''} ${!canSelect ? 'disabled' : ''}" 
+                         onclick="${canSelect ? `selectCrop('${crop.id}')` : ''}">
+                        <div class="crop-icon" style="font-size: 3rem; margin-bottom: 10px;">${crop.icon}</div>
+                        <h3>${crop.name}</h3>
+                        <p style="color: var(--gray); font-size: 0.9rem; margin: 10px 0;">${crop.description}</p>
+                        <div style="background: ${crop.color}20; padding: 8px; border-radius: var(--radius-sm);">
+                            <div style="display: flex; justify-content: space-between; font-size: 0.9rem;">
+                                <span><i class="fas fa-clock"></i> ${crop.growthTime}天</span>
+                                <span><i class="fas fa-box"></i> ${crop.harvestAmount}个</span>
+                            </div>
+                        </div>
+                        ${isCurrentCrop ? 
+                            '<div style="margin-top: 10px; color: var(--success); font-weight: bold;">种植中</div>' : 
+                            canSelect ? 
+                            '<div style="margin-top: 10px; color: var(--primary); font-weight: bold;">点击选择</div>' :
+                            '<div style="margin-top: 10px; color: var(--gray); font-size: 0.9rem;">已有作物种植中</div>'
+                        }
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // 渲染当前作物状态
+        function renderCurrentCropStatus() {
+            const container = document.getElementById('currentCropStatus');
+            const currentCrop = userData.crops?.[0];
+            
+            if (!currentCrop || currentCrop.harvested) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 30px;">
+                        <div class="crop-icon" style="font-size: 3rem; color: var(--gray);">🌱</div>
+                        <h3 style="margin: 15px 0;">当前没有作物在种植</h3>
+                        <p style="color: var(--gray);">从上方选择一个作物开始种植吧！</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            const cropInfo = cropsData?.find(c => c.id === currentCrop.id);
+            if (!cropInfo) {
+                container.innerHTML = `<p style="color: var(--danger);">作物数据加载失败</p>`;
+                return;
+            }
+            
+            const progressPercent = (currentCrop.currentGrowth / cropInfo.growthTime) * 100;
+            const remainingDays = Math.max(0, cropInfo.growthTime - currentCrop.currentGrowth);
+            
+            container.innerHTML = `
+                <div style="text-align: center;">
+                    <div class="crop-icon" style="font-size: 4rem;">${cropInfo.icon}</div>
+                    <h3 style="margin: 10px 0;">${cropInfo.name}</h3>
+                    
+                    <div style="margin: 20px 0;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                            <span>生长进度</span>
+                            <span>${currentCrop.currentGrowth}/${cropInfo.growthTime}</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${progressPercent}%"></div>
+                        </div>
+                    </div>
+                    
+                    <div style="background: var(--light); padding: 15px; border-radius: var(--radius-md); margin: 20px 0;">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; text-align: center;">
+                            <div>
+                                <div style="font-size: 0.9rem; color: var(--gray);">开始时间</div>
+                                <div style="font-size: 1rem;">${new Date(currentCrop.plantedAt).toLocaleDateString()}</div>
+                            </div>
+                            <div>
+                                <div style="font-size: 0.9rem; color: var(--gray);">还需照料</div>
+                                <div style="font-size: 1.2rem; font-weight: bold; color: var(--primary);">${remainingDays}次</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    ${currentCrop.currentGrowth >= cropInfo.growthTime ? 
+                        `<div style="margin-top: 20px;">
+                            <button class="btn btn-success" onclick="harvestCrop()">
+                                <i class="fas fa-hand-holding"></i> 收获作物
+                            </button>
+                            <p style="color: var(--gray); font-size: 0.9rem; margin-top: 10px;">收获可获得${cropInfo.harvestAmount}个${cropInfo.name}</p>
+                        </div>` : 
+                        `<p style="color: var(--gray); font-size: 0.9rem;">
+                            每天完成习惯打卡可以促进作物生长
+                        </p>`
+                    }
+                </div>
+            `;
+        }
+
+        // 渲染习惯管理
+        function renderHabitsManagement() {
+            const container = document.getElementById('habitsManagement');
+            const habits = userData.habits || [];
+            
+            document.getElementById('currentHabitCount').textContent = habits.length;
+            document.getElementById('maxHabits').textContent = userData.maxHabits || 3;
+            
+            if (habits.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 30px; color: var(--gray);">
+                        <i class="fas fa-tasks" style="font-size: 2.5rem; margin-bottom: 15px;"></i>
+                        <p>还没有任何习惯</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = '';
+            habits.forEach(habit => {
+                const today = new Date().toDateString();
+                const lastCompletedDate = habit.lastCompleted ? new Date(habit.lastCompleted).toDateString() : null;
+                const canCheckin = lastCompletedDate !== today;
+                
+                html += `
+                    <div class="habit-item" style="margin-bottom: 10px;">
+                        <div class="habit-info">
+                            <h4>${habit.name}</h4>
+                            <div class="habit-stats">
+                                <span><i class="fas fa-fire"></i> ${habit.streak || 0}天</span>
+                                <span><i class="fas fa-check-circle"></i> ${habit.totalCompletions || 0}次</span>
+                                ${lastCompletedDate ? 
+                                    `<span><i class="fas fa-calendar"></i> ${lastCompletedDate === today ? '今天' : '已打卡'}</span>` : 
+                                    '<span><i class="fas fa-calendar-times"></i> 未打卡</span>'
+                                }
+                            </div>
+                        </div>
+                        <div class="habit-actions">
+                            <button class="btn btn-success btn-small" onclick="checkinHabit('${habit.id}')" ${!canCheckin ? 'disabled' : ''}>
+                                <i class="fas fa-check"></i>
+                            </button>
+                            <button class="btn btn-danger btn-small" onclick="deleteHabit('${habit.id}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+
+        // 选择作物
+        async function selectCrop(cropId) {
+            const currentCrop = userData.crops?.[0];
+            if (currentCrop && !currentCrop.harvested) {
+                if (!confirm('已有作物在种植中，确定要更换作物吗？当前作物的生长进度将会丢失。')) {
+                    return;
+                }
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/plant-crop`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ cropId })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showNotification('作物种植成功！', 'success');
+                    
+                    // 重新加载数据
+                    await loadPageData();
+                } else {
+                    showNotification(data.error || '种植失败', 'error');
+                }
+            } catch (error) {
+                console.error('种植作物错误:', error);
+                showNotification('种植失败，请检查网络', 'error');
+            }
+        }
+
+        // 收获作物
+        async function harvestCrop() {
+            try {
+                const response = await fetch(`${API_BASE}/harvest-crop`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showNotification(`收获成功！获得${data.harvestedAmount}个作物`, 'success');
+                    
+                    // 重新加载数据
+                    await loadPageData();
+                } else {
+                    showNotification(data.error || '收获失败', 'error');
+                }
+            } catch (error) {
+                console.error('收获作物错误:', error);
+                showNotification('收获失败，请检查网络', 'error');
+            }
+        }
+
+        // 打卡习惯
+        async function checkinHabit(habitId) {
+            try {
+                const response = await fetch(`${API_BASE}/checkin-habit`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ habitId })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showNotification('习惯打卡成功！', 'success');
+                    
+                    // 重新加载数据
+                    await loadPageData();
+                } else {
+                    showNotification(data.error || '打卡失败', 'error');
+                }
+            } catch (error) {
+                console.error('打卡错误:', error);
+                showNotification('打卡失败，请检查网络', 'error');
+            }
+        }
+
+        // 添加新习惯
+        async function addNewHabit() {
+            const habitName = prompt('请输入新习惯的名称：');
+            if (!habitName || habitName.trim() === '') return;
+            
+            if ((userData.habits || []).length >= (userData.maxHabits || 3)) {
+                showNotification(`已达到最大习惯数量限制（${userData.maxHabits}个）`, 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/add-habit`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ habitName: habitName.trim() })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showNotification('习惯添加成功！', 'success');
+                    
+                    // 重新加载数据
+                    await loadPageData();
+                } else {
+                    showNotification(data.error || '添加失败', 'error');
+                }
+            } catch (error) {
+                console.error('添加习惯错误:', error);
+                showNotification('添加失败，请检查网络', 'error');
+            }
+        }
+
+        // 删除习惯
+        async function deleteHabit(habitId) {
+            if (!confirm('确定要删除这个习惯吗？')) return;
+            
+            // 前端删除，后端会在下次保存时更新
+            userData.habits = (userData.habits || []).filter(h => h.id !== habitId);
+            
+            try {
+                const response = await fetch(`${API_BASE}/save-data`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ habits: userData.habits })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showNotification('习惯删除成功！', 'success');
+                    renderHabitsManagement();
+                } else {
+                    showNotification('删除失败', 'error');
+                }
+            } catch (error) {
+                console.error('删除习惯错误:', error);
+                showNotification('删除失败，请检查网络', 'error');
+            }
+        }
+
+        // 显示通知
+        function showNotification(message, type = 'info') {
+            const container = document.getElementById('notificationContainer');
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+                    <div>${message}</div>
+                </div>
+            `;
+            
+            container.appendChild(notification);
+            
+            setTimeout(() => notification.classList.add('show'), 10);
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => notification.remove(), 500);
+            }, 3000);
+        }
+
+        // 页面加载完成
+        window.addEventListener('load', loadPageData);
+    </script>
+</body>
+</html>

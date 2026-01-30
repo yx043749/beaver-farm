@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>专注农场 - 登录</title>
+    <script src="common.js"></script>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h1><i class="fas fa-sign-in-alt"></i> 登录账号</h1>
+                    <p class="subtitle">请输入您的账号信息</p>
+                </div>
+                <div>
+                    <button class="btn btn-outline btn-small" onclick="window.location.href='index.html'">
+                        <i class="fas fa-arrow-left"></i> 返回首页
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <div class="grid grid-2" style="max-width: 1000px; margin: 0 auto;">
+            <!-- 登录表单 -->
+            <div class="card">
+                <h2 class="card-title"><i class="fas fa-sign-in-alt"></i> 用户登录</h2>
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label for="loginUsername"><i class="fas fa-user"></i> 用户名</label>
+                        <input type="text" id="loginUsername" class="form-control" placeholder="请输入用户名" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="loginPassword"><i class="fas fa-lock"></i> 密码</label>
+                        <input type="password" id="loginPassword" class="form-control" placeholder="请输入密码" required>
+                    </div>
+                    <div class="form-group">
+                        <label style="display: flex; align-items: center; gap: 8px;">
+                            <input type="checkbox" id="rememberMe">
+                            <span>记住我（30天内自动登录）</span>
+                        </label>
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 10px;">
+                        <span id="loginText">登录</span>
+                        <span id="loginLoading" class="loading" style="display: none;"></span>
+                    </button>
+                </form>
+                <div id="loginError" style="color: var(--danger); margin-top: 15px; display: none;"></div>
+                
+                <div style="margin-top: 20px; text-align: center;">
+                    <p style="color: var(--gray);">还没有账号？</p>
+                    <button class="btn btn-secondary" onclick="window.location.href='register.html'">
+                        <i class="fas fa-user-plus"></i> 立即注册
+                    </button>
+                </div>
+            </div>
+
+            <!-- 系统信息 -->
+            <div class="card">
+                <h2 class="card-title"><i class="fas fa-info-circle"></i> 系统信息</h2>
+                <div style="padding: 15px 0;">
+                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px; padding: 10px; background: #F8F9FA; border-radius: var(--radius-md);">
+                        <i class="fas fa-shield-alt" style="color: var(--primary); font-size: 1.2rem;"></i>
+                        <div>
+                            <div style="font-weight: bold;">登录安全</div>
+                            <div style="font-size: 0.9rem; color: var(--gray);">登录有效期30天，过期自动退出</div>
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px; padding: 10px; background: #F8F9FA; border-radius: var(--radius-md);">
+                        <i class="fas fa-sync-alt" style="color: var(--success); font-size: 1.2rem;"></i>
+                        <div>
+                            <div style="font-weight: bold;">数据同步</div>
+                            <div style="font-size: 0.9rem; color: var(--gray);">云端保存，多设备数据同步</div>
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; align-items: center; gap: 10px; padding: 10px; background: #F8F9FA; border-radius: var(--radius-md);">
+                        <i class="fas fa-exclamation-triangle" style="color: var(--accent); font-size: 1.2rem;"></i>
+                        <div>
+                            <div style="font-weight: bold;">温馨提示</div>
+                            <div style="font-size: 0.9rem; color: var(--gray);">30天未登录需重新验证身份</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 30px; padding: 15px; background: #E8F5E9; border-radius: var(--radius-md);">
+                    <h4><i class="fas fa-lightbulb"></i> 忘记密码？</h4>
+                    <p style="color: var(--gray); margin-top: 10px; font-size: 0.9rem;">
+                        请联系系统管理员或重新注册新账号
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="notificationContainer"></div>
+
+    <script>
+        // 动态获取后端地址
+        function getApiBase() {
+            const currentUrl = window.location.origin;
+            if (currentUrl === 'file://' || currentUrl.startsWith('file://')) {
+                return 'http://localhost:3000/api';
+            }
+            return `${currentUrl}/api`;
+        }
+
+        let API_BASE = getApiBase();
+        let authToken = localStorage.getItem('authToken');
+
+        // 检查自动登录
+        window.addEventListener('load', async () => {
+            const rememberMe = localStorage.getItem('rememberMe') === 'true';
+            
+            if (authToken && rememberMe) {
+                try {
+                    const response = await fetch(`${API_BASE}/auto-login`, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${authToken}`
+                        }
+                    });
+                    
+                    const data = await response.json();
+                    if (data.success) {
+                        window.location.href = 'main.html';
+                    } else {
+                        // 如果自动登录失败，清除token
+                        if (data.error && data.error.includes('过期')) {
+                            showNotification('登录已过期，请重新登录', 'error');
+                        }
+                        localStorage.removeItem('authToken');
+                    }
+                } catch (error) {
+                    console.error('自动登录失败:', error);
+                }
+            }
+        });
+
+        // 登录表单提交
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const username = document.getElementById('loginUsername').value;
+            const password = document.getElementById('loginPassword').value;
+            const rememberMe = document.getElementById('rememberMe').checked;
+            
+            const loginText = document.getElementById('loginText');
+            const loginLoading = document.getElementById('loginLoading');
+            const errorDiv = document.getElementById('loginError');
+            
+            loginText.style.display = 'none';
+            loginLoading.style.display = 'inline-block';
+            errorDiv.style.display = 'none';
+            
+            try {
+                const response = await fetch(`${API_BASE}/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, password })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    authToken = data.token;
+                    localStorage.setItem('authToken', authToken);
+                    
+                    if (rememberMe) {
+                        localStorage.setItem('rememberMe', 'true');
+                    } else {
+                        localStorage.removeItem('rememberMe');
+                    }
+                    
+                    showNotification('登录成功！', 'success');
+                    setTimeout(() => {
+                        window.location.href = 'main.html';
+                    }, 1000);
+                } else {
+                    errorDiv.textContent = data.error || '登录失败';
+                    errorDiv.style.display = 'block';
+                }
+            } catch (error) {
+                errorDiv.textContent = '网络错误，请检查后端服务';
+                errorDiv.style.display = 'block';
+                console.error('登录错误:', error);
+            } finally {
+                loginText.style.display = 'inline';
+                loginLoading.style.display = 'none';
+            }
+        });
+
+        // 显示通知
+        function showNotification(message, type = 'info') {
+            const container = document.getElementById('notificationContainer');
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
+                    <div>${message}</div>
+                </div>
+            `;
+            
+            container.appendChild(notification);
+            
+            setTimeout(() => notification.classList.add('show'), 10);
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => notification.remove(), 500);
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

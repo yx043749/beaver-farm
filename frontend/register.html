@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>专注农场 - 注册</title>
+    <script src="common.js"></script>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h1><i class="fas fa-user-plus"></i> 注册账号</h1>
+                    <p class="subtitle">创建你的专属农场账号</p>
+                </div>
+                <div>
+                    <button class="btn btn-outline btn-small" onclick="window.location.href='index.html'">
+                        <i class="fas fa-arrow-left"></i> 返回首页
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <div class="grid grid-2" style="max-width: 1000px; margin: 0 auto;">
+            <!-- 注册表单 -->
+            <div class="card">
+                <h2 class="card-title"><i class="fas fa-user-plus"></i> 新用户注册</h2>
+                <form id="registerForm">
+                    <div class="form-group">
+                        <label for="registerUsername"><i class="fas fa-user"></i> 用户名</label>
+                        <input type="text" id="registerUsername" class="form-control" placeholder="3-20个字符" required>
+                        <div style="font-size: 0.85rem; color: var(--gray); margin-top: 5px;">
+                            用于登录的唯一标识
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="registerPassword"><i class="fas fa-lock"></i> 密码</label>
+                        <input type="password" id="registerPassword" class="form-control" placeholder="至少6个字符" required>
+                        <div style="font-size: 0.85rem; color: var(--gray); margin-top: 5px;">
+                            建议使用数字、字母和符号组合
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="confirmPassword"><i class="fas fa-lock"></i> 确认密码</label>
+                        <input type="password" id="confirmPassword" class="form-control" placeholder="再次输入密码" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label style="display: flex; align-items: center; gap: 8px;">
+                            <input type="checkbox" id="agreeTerms" required>
+                            <span>我已阅读并同意 <a href="javascript:void(0)" onclick="showTerms()" style="color: var(--primary);">用户协议</a></span>
+                        </label>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 10px;">
+                        <span id="registerText">注册</span>
+                        <span id="registerLoading" class="loading" style="display: none;"></span>
+                    </button>
+                </form>
+                <div id="registerError" style="color: var(--danger); margin-top: 15px; display: none;"></div>
+                
+                <div style="margin-top: 20px; text-align: center;">
+                    <p style="color: var(--gray);">已有账号？</p>
+                    <button class="btn btn-secondary" onclick="window.location.href='login.html'">
+                        <i class="fas fa-sign-in-alt"></i> 立即登录
+                    </button>
+                </div>
+            </div>
+
+            <!-- 注册说明 -->
+            <div class="card">
+                <h2 class="card-title"><i class="fas fa-gift"></i> 新用户福利</h2>
+                <div style="padding: 15px 0;">
+                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px; padding: 15px; background: linear-gradient(135deg, #E8F5E9, #F1F8E9); border-radius: var(--radius-md);">
+                        <i class="fas fa-seedling" style="color: var(--success); font-size: 1.5rem;"></i>
+                        <div>
+                            <div style="font-weight: bold; color: var(--success);">初始材料包</div>
+                            <div style="font-size: 0.9rem; color: var(--gray);">注册即送初始作物材料，立即开始种植</div>
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px; padding: 15px; background: linear-gradient(135deg, #E3F2FD, #E8F5FD); border-radius: var(--radius-md);">
+                        <i class="fas fa-scroll" style="color: var(--primary); font-size: 1.5rem;"></i>
+                        <div>
+                            <div style="font-weight: bold; color: var(--primary);">菜谱图鉴</div>
+                            <div style="font-size: 0.9rem; color: var(--gray);">解锁神秘菜谱，每解锁一个增加习惯位</div>
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; align-items: center; gap: 10px; padding: 15px; background: linear-gradient(135deg, #FFF3E0, #FFF8E1); border-radius: var(--radius-md);">
+                        <i class="fas fa-chart-line" style="color: var(--accent); font-size: 1.5rem;"></i>
+                        <div>
+                            <div style="font-weight: bold; color: var(--accent);">成长统计</div>
+                            <div style="font-size: 0.9rem; color: var(--gray);">完整的习惯打卡报表和作物生长记录</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 30px; padding: 15px; background: #FFF8E1; border-radius: var(--radius-md);">
+                    <h4><i class="fas fa-exclamation-circle"></i> 注意事项</h4>
+                    <ul style="margin-top: 10px; padding-left: 20px; color: var(--gray); font-size: 0.9rem;">
+                        <li>用户名注册后不可修改</li>
+                        <li>请妥善保管密码，建议不要使用简单密码</li>
+                        <li>登录有效期30天，过期需要重新登录</li>
+                        <li>数据云端保存，可在多设备访问</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="notificationContainer"></div>
+
+    <script>
+        // 动态获取后端地址
+        function getApiBase() {
+            const currentUrl = window.location.origin;
+            if (currentUrl === 'file://' || currentUrl.startsWith('file://')) {
+                return 'http://localhost:3000/api';
+            }
+            return `${currentUrl}/api`;
+        }
+
+        let API_BASE = getApiBase();
+
+        // 显示用户协议
+        function showTerms() {
+            alert(`用户协议
+
+欢迎使用专注农场系统！
+
+1. 账号安全
+   - 请妥善保管您的账号密码
+   - 不要与他人共享账号
+
+2. 数据安全
+   - 您的数据会安全存储在服务器
+   - 我们会定期备份数据
+
+3. 使用规则
+   - 请遵守法律法规
+   - 不要进行恶意操作
+
+4. 隐私政策
+   - 我们尊重您的隐私
+   - 不会泄露您的个人信息
+
+点击确定表示您已阅读并同意以上协议。`);
+        }
+
+        // 注册表单提交
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const username = document.getElementById('registerUsername').value;
+            const password = document.getElementById('registerPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            
+            if (password !== confirmPassword) {
+                document.getElementById('registerError').textContent = '两次输入的密码不一致';
+                document.getElementById('registerError').style.display = 'block';
+                return;
+            }
+            
+            const registerText = document.getElementById('registerText');
+            const registerLoading = document.getElementById('registerLoading');
+            const errorDiv = document.getElementById('registerError');
+            
+            registerText.style.display = 'none';
+            registerLoading.style.display = 'inline-block';
+            errorDiv.style.display = 'none';
+            
+            try {
+                const response = await fetch(`${API_BASE}/register`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, password })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showNotification('注册成功！请前往登录页面登录', 'success');
+                    setTimeout(() => {
+                        window.location.href = 'login.html';
+                    }, 2000);
+                } else {
+                    errorDiv.textContent = data.error || '注册失败';
+                    errorDiv.style.display = 'block';
+                }
+            } catch (error) {
+                errorDiv.textContent = '网络错误，请检查后端服务';
+                errorDiv.style.display = 'block';
+                console.error('注册错误:', error);
+            } finally {
+                registerText.style.display = 'inline';
+                registerLoading.style.display = 'none';
+            }
+        });
+
+        // 显示通知
+        function showNotification(message, type = 'info') {
+            const container = document.getElementById('notificationContainer');
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
+                    <div>${message}</div>
+                </div>
+            `;
+            
+            container.appendChild(notification);
+            
+            setTimeout(() => notification.classList.add('show'), 10);
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => notification.remove(), 500);
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

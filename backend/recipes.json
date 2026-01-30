@@ -1,0 +1,108 @@
+[
+    {
+        "id": "recipe_1",
+        "name": "田园浓汤",
+        "icon": "🍲",
+        "difficulty": 1,
+        "ingredients": [
+            { "cropId": "carrot", "quantity": 3 },
+            { "cropId": "potato", "quantity": 2 }
+        ],
+        "hints": [
+            "这是一道温暖身心的经典汤品",
+            "需要橙色的根茎类食材",
+            "另一种食材生长在地下",
+            "总食材数量大约需要5个"
+        ],
+        "clues": [
+            "橙色食材需要3个",
+            "棕色食材需要2个",
+            "它们都是根茎类蔬菜"
+        ]
+    },
+    {
+        "id": "recipe_2",
+        "name": "番茄意面",
+        "icon": "🍝",
+        "difficulty": 2,
+        "ingredients": [
+            { "cropId": "tomato", "quantity": 4 },
+            { "cropId": "carrot", "quantity": 1 }
+        ],
+        "hints": [
+            "酸甜可口的意式风味",
+            "主色调是红色的多汁果实",
+            "需要一点橙色的配料",
+            "总食材数量大约需要5个"
+        ],
+        "clues": [
+            "红色食材需要4个",
+            "橙色食材需要1个",
+            "红色食材是多汁的果实"
+        ]
+    },
+    {
+        "id": "recipe_3",
+        "name": "浆果蛋糕",
+        "icon": "🍰",
+        "difficulty": 3,
+        "ingredients": [
+            { "cropId": "strawberry", "quantity": 5 },
+            { "cropId": "grape", "quantity": 2 }
+        ],
+        "hints": [
+            "甜美诱人的下午茶点心",
+            "需要心形和圆形的浆果",
+            "颜色以红色和紫色为主",
+            "总食材数量大约需要7个"
+        ],
+        "clues": [
+            "心形食材需要5个",
+            "圆形食材需要2个",
+            "它们都是香甜的浆果"
+        ]
+    },
+    {
+        "id": "recipe_4",
+        "name": "土豆沙拉",
+        "icon": "🥗",
+        "difficulty": 2,
+        "ingredients": [
+            { "cropId": "potato", "quantity": 3 },
+            { "cropId": "carrot", "quantity": 1 },
+            { "cropId": "corn", "quantity": 1 }
+        ],
+        "hints": [
+            "清爽健康的夏日沙拉",
+            "包含多种颜色的食材",
+            "有块茎、根茎和谷物",
+            "总食材数量大约需要5个"
+        ],
+        "clues": [
+            "棕色食材需要3个",
+            "橙色食材需要1个",
+            "黄色食材需要1个"
+        ]
+    },
+    {
+        "id": "recipe_5",
+        "name": "葡萄果酱",
+        "icon": "🍯",
+        "difficulty": 3,
+        "ingredients": [
+            { "cropId": "grape", "quantity": 6 },
+            { "cropId": "strawberry", "quantity": 2 }
+        ],
+        "hints": [
+            "手工制作的天然果酱",
+            "需要大量浆果",
+            "有特殊的制作工艺",
+            "总食材数量大约需要8个"
+        ],
+        "clues": [
+            "紫色食材需要6个",
+            "红色食材需要2个",
+            "它们都是多汁的水果"
+        ]
+    }
+]
