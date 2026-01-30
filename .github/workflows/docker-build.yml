@@ -2,7 +2,7 @@ name: Build and Deploy
 
 on:
   push:
-分支: [main, master]
+分支: ["main"]
   workflow_dispatch:
 
 jobs:
