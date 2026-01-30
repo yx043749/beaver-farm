@@ -1,0 +1,118 @@
+name: Docker Build and Push
+
+on:
+  push:
+分支: [main, master]
+  pull_request:
+分支: [main, master]
+  workflow_dispatch:  # 允许手动触发
+
+env:
+  IMAGE_NAME: beaver-farm
+  DOCKERHUB_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+
+jobs:
+  # 第一阶段：安装和测试
+  prepare:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ./backend
+        run: |
+          echo "Installing npm dependencies..."
+          npm ci --omit=dev
+          echo "Dependencies installed"
+
+      - name: Test if server starts (简单测试)
+        working-directory: ./backend
+        run: |
+          # 检查 server.js 是否存在
+          if [ -f "server.js" ]; then
+            echo "✓ server.js found"
+            # 检查是否能启动（不实际运行）
+            if node -c server.js; then
+              echo "✓ server.js syntax is valid"
+            else
+              echo "✗ server.js has syntax errors"
+              exit 1
+            fi
+          else
+            echo "✗ server.js not found"
+            exit 1
+          fi
+
+      - name: Verify dependencies
+        run: |
+          echo "Verifying critical files..."
+          ls -la backend/
+          if [ -f "backend/node_modules/.bin/nodemon" ] || [ -f "backend/node_modules/.bin/pm2" ]; then
+            echo "✓ Production dependencies installed"
+          else
+            echo "ℹ Using basic node installation"
+          fi
+
+      - name: Create artifact with node_modules
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-with-deps
+          path: |
+            backend/
+          retention-days: 1
+
+  # 第二阶段：构建 Docker 镜像
+  build:
+    needs: prepare  # 依赖 prepare 任务完成
+    runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request'  # 只在 push 时构建镜像
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download dependencies artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: backend-with-deps
+          path: backend/
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_TOKEN }}
+
+      - name: Extract metadata for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}
+标签: |
+            type=ref,event=branch
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+标签: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            NODE_ENV=production
