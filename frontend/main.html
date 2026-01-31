@@ -77,10 +77,11 @@
         <div class="card">
             <h2 class="card-title"><i class="fas fa-chart-bar"></i> 习惯打卡报表</h2>
             
+            <!-- 修改报表导航按钮的onclick -->
             <div class="nav-bar" style="margin-bottom: 20px;">
-                <button class="btn btn-small active" onclick="showReport('week')">周报</button>
-                <button class="btn btn-small" onclick="showReport('month')">月报</button>
-                <button class="btn btn-small" onclick="showReport('year')">年报</button>
+                <button class="btn btn-small active" onclick="showReport('week', event)">周报</button>
+                <button class="btn btn-small" onclick="showReport('month', event)">月报</button>
+                <button class="btn btn-small" onclick="showReport('year', event)">年报</button>
             </div>
             
             <div id="reportContent">
@@ -235,14 +236,14 @@
                 updateUserStats();
                 renderHabitsList();
                 renderCropDisplay();
-                showReport(currentReportType);
+                showReport();
             } catch (error) {
                 console.error('加载页面数据失败:', error);
                 showNotification('加载数据失败，请刷新页面', 'error');
             }
         }
 
-        // 检查登录状态
+        // 检查登录状态（带特效弹窗）
         async function checkLoginStatus() {
             try {
                 const response = await fetch(`${API_BASE}/last-login`, {
@@ -256,19 +257,172 @@
                     const lastLogin = new Date(data.lastLogin);
                     const now = new Date();
                     const daysDiff = Math.floor((now - lastLogin) / (1000 * 60 * 60 * 24));
+                    const remainingDays = 30 - daysDiff;
+                    const progressPercent = (remainingDays / 30) * 100;
                     
-                    alert(`登录状态信息：
+                    // 创建弹窗
+                    const modal = document.createElement('div');
+                    modal.className = 'status-modal';
+                    modal.innerHTML = `
+                        <div class="status-modal-backdrop" onclick="closeStatusModal()"></div>
+                        <div class="status-modal-content">
+                            <div class="status-modal-header">
+                                <h3><i class="fas fa-user-circle"></i> 账户状态</h3>
+                                <p>查看您的登录信息和账户详情</p>
+                            </div>
+                            
+                            <div class="status-modal-body">
+                                <div class="status-info-grid">
+                                    <div class="status-info-item">
+                                        <div class="status-info-icon">
+                                            <i class="fas fa-user"></i>
+                                        </div>
+                                        <div class="status-info-content">
+                                            <div class="status-info-label">用户名</div>
+                                            <div class="status-info-value">${userData.username}</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="status-info-item">
+                                        <div class="status-info-icon">
+                                            <i class="fas fa-sign-in-alt"></i>
+                                        </div>
+                                        <div class="status-info-content">
+                                            <div class="status-info-label">最后登录</div>
+                                            <div class="status-info-value">${lastLogin.toLocaleString()}</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="status-info-item">
+                                        <div class="status-info-icon">
+                                            <i class="fas fa-calendar-day"></i>
+                                        </div>
+                                        <div class="status-info-content">
+                                            <div class="status-info-label">已登录天数</div>
+                                            <div class="status-info-value ${daysDiff < 7 ? 'text-warning' : 'text-success'}">
+                                                ${daysDiff}天
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="status-info-item">
+                                        <div class="status-info-icon">
+                                            <i class="fas fa-hourglass-half"></i>
+                                        </div>
+                                        <div class="status-info-content">
+                                            <div class="status-info-label">剩余有效期</div>
+                                            <div class="status-info-value ${
+                                                remainingDays <= 3 ? 'text-danger' : 
+                                                remainingDays <= 7 ? 'text-warning' : 
+                                                'text-success'
+                                            }">
+                                                ${remainingDays}天
+                                                ${remainingDays <= 3 ? '<i class="fas fa-exclamation-circle ml-2"></i>' : ''}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="status-info-item">
+                                        <div class="status-info-icon">
+                                            <i class="fas fa-calendar-plus"></i>
+                                        </div>
+                                        <div class="status-info-content">
+                                            <div class="status-info-label">账号创建</div>
+                                            <div class="status-info-value">${new Date(data.createdAt).toLocaleDateString()}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="status-progress">
+                                    <div class="status-progress-label">
+                                        <span>账户有效期进度</span>
+                                        <span>${remainingDays}/30天</span>
+                                    </div>
+                                    <div class="status-progress-bar">
+                                        <div class="status-progress-fill" style="width: ${progressPercent}%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="status-modal-footer">
+                                <button class="status-close-btn" onclick="closeStatusModal()">
+                                    <i class="fas fa-check"></i> 我知道了
+                                </button>
+                            </div>
+                        </div>
+                    `;
                     
-        用户名: ${userData.username}
-        最后登录: ${lastLogin.toLocaleString()}
-        已登录天数: ${daysDiff}天
-        剩余有效期: ${30 - daysDiff}天
-
-        账号创建: ${new Date(data.createdAt).toLocaleDateString()}`);
+                    document.body.appendChild(modal);
+                    
+                    // 显示弹窗（添加动画）
+                    setTimeout(() => {
+                        modal.classList.add('active');
+                        // 启动进度条动画
+                        const progressFill = modal.querySelector('.status-progress-fill');
+                        progressFill.style.width = `${progressPercent}%`;
+                    }, 10);
+                    
+                    // 添加ESC键关闭支持
+                    modal._closeHandler = (e) => {
+                        if (e.key === 'Escape') closeStatusModal();
+                    };
+                    document.addEventListener('keydown', modal._closeHandler);
                 }
             } catch (error) {
                 console.error('获取登录状态失败:', error);
+                // 即使API失败也显示基本弹窗
+                showSimpleStatusModal();
             }
+        }
+
+        // 关闭状态弹窗
+        function closeStatusModal() {
+            const modal = document.querySelector('.status-modal');
+            if (modal) {
+                // 移除键盘事件监听
+                if (modal._closeHandler) {
+                    document.removeEventListener('keydown', modal._closeHandler);
+                }
+                
+                // 关闭动画
+                modal.classList.remove('active');
+                setTimeout(() => modal.remove(), 300);
+            }
+        }
+
+        // 如果API失败，显示简单弹窗
+        function showSimpleStatusModal() {
+            const modal = document.createElement('div');
+            modal.className = 'status-modal';
+            modal.innerHTML = `
+                <div class="status-modal-backdrop" onclick="closeStatusModal()"></div>
+                <div class="status-modal-content">
+                    <div class="status-modal-header">
+                        <h3><i class="fas fa-exclamation-triangle"></i> 账户信息</h3>
+                        <p>无法获取完整状态</p>
+                    </div>
+                    
+                    <div class="status-modal-body">
+                        <div style="text-align: center; padding: 20px;">
+                            <i class="fas fa-user-circle" style="font-size: 3rem; color: var(--gray); margin-bottom: 15px;"></i>
+                            <p style="font-size: 1.2rem; font-weight: 600; margin-bottom: 5px;">${userData.username}</p>
+                            <p style="color: var(--gray);">无法连接到服务器获取完整信息</p>
+                        </div>
+                    </div>
+                    
+                    <div class="status-modal-footer">
+                        <button class="status-close-btn" onclick="closeStatusModal()">
+                            <i class="fas fa-times"></i> 关闭
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            
+            setTimeout(() => {
+                modal.classList.add('active');
+            }, 10);
         }
 
         // 退出登录
@@ -335,15 +489,24 @@
 
         // 更新用户统计
         function updateUserStats() {
-            document.getElementById('streakDays').textContent = userData.habitStreak || 0;
-            document.getElementById('totalHarvests').textContent = userData.totalHarvests || 0;
-            document.getElementById('recipeCount').textContent = userData.discoveredRecipes?.length || 0;
-            document.getElementById('currentHabitCount').textContent = userData.habits?.length || 0;
-            document.getElementById('maxHabits').textContent = userData.maxHabits || 3;
+            // 只更新HTML中存在的元素
+            if (document.getElementById('totalHarvests')) {
+                document.getElementById('totalHarvests').textContent = userData.totalHarvests || 0;
+            }
             
-            // 计算总完成次数
-            const totalCompletions = userData.habits?.reduce((sum, habit) => sum + (habit.totalCompletions || 0), 0) || 0;
-            document.getElementById('totalCompletions').textContent = totalCompletions;
+            if (document.getElementById('recipeCount')) {
+                document.getElementById('recipeCount').textContent = userData.discoveredRecipes?.length || 0;
+            }
+            
+            // 可选：在控制台显示其他统计信息
+            console.log('用户统计:', {
+                streakDays: userData.habitStreak || 0,
+                totalHarvests: userData.totalHarvests || 0,
+                recipeCount: userData.discoveredRecipes?.length || 0,
+                currentHabits: userData.habits?.length || 0,
+                maxHabits: userData.maxHabits || 3,
+                totalCompletions: userData.habits?.reduce((sum, habit) => sum + (habit.totalCompletions || 0), 0) || 0
+            });
         }
 
         // 渲染习惯列表
@@ -455,15 +618,16 @@
             `;
         }
 
-        // 显示报表（关联实际数据）
-        function showReport(type) {
+        function showReport(type, event = null) {
             currentReportType = type;
             
             // 更新按钮状态
-            document.querySelectorAll('.nav-bar .btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            event.target.classList.add('active');
+            if (event) {
+                document.querySelectorAll('.nav-bar .btn').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                event.target.classList.add('active');
+            }
             
             const container = document.getElementById('reportContent');
             const habits = userData.habits || [];
@@ -709,7 +873,12 @@
         }
 
         // 页面加载完成
-        window.addEventListener('load', loadPageData);
+        window.addEventListener('load', function() {
+            loadPageData().then(() => {
+                // 数据加载完成后显示周报
+                showReport('week');
+            });
+        });
     </script>
 </body>
 </html>

@@ -1,63 +1,63 @@
 {
-    "username": "demo",
-    "password": "$2a$10$7R3w5L2Xz8q9K4J1N6M8OQ.AvBcDeFgHiJkLmNoPqRsTuVwXyZaBc",  // 密码: demo123
-    "habits": [
-      {
-        "id": "habit_1",
-        "name": "早起锻炼",
-        "streak": 7,
-        "totalCompletions": 25,
-        "lastCompleted": "2023-12-15T08:00:00.000Z",
-        "createdAt": "2023-11-01T08:00:00.000Z"
-      },
-      {
-        "id": "habit_2",
-        "name": "阅读30分钟",
-        "streak": 14,
-        "totalCompletions": 45,
-        "lastCompleted": "2023-12-15T20:30:00.000Z",
-        "createdAt": "2023-11-10T08:00:00.000Z"
-      },
-      {
-        "id": "habit_3",
-        "name": "学习编程",
-        "streak": 21,
-        "totalCompletions": 60,
-        "lastCompleted": "2023-12-15T19:00:00.000Z",
-        "createdAt": "2023-10-15T08:00:00.000Z"
-      }
-    ],
-    "crops": [
-      {
-        "id": "carrot",
-        "plantedAt": "2023-12-10T08:00:00.000Z",
-        "currentGrowth": 5,
-        "harvested": false,
-        "harvestedAt": null
-      }
-    ],
-    "storage": {
-      "carrot": 8,
-      "tomato": 5,
-      "strawberry": 3,
-      "potato": 6,
-      "corn": 2,
-      "grape": 1
+  "username": "demo",
+  "password": "$2a$10$7R3w5L2Xz8q9K4J1N6M8OQ.AvBcDeFgHiJkLmNoPqRsTuVwXyZaBc",
+  "habits": [
+    {
+      "id": "habit_1",
+      "name": "早起锻炼",
+      "streak": 7,
+      "totalCompletions": 25,
+      "lastCompleted": "2023-12-15T08:00:00.000Z",
+      "createdAt": "2023-11-01T08:00:00.000Z"
     },
-    "discoveredRecipes": [
-      "recipe_1",
-      "recipe_2"
-    ],
-    "habitStreak": 21,
-    "totalHarvests": 12,
-    "maxHabits": 5,
-    "createdAt": "2023-10-01T08:00:00.000Z",
-    "lastLogin": "2023-12-15T08:00:00.000Z",
-    "statistics": {
-      "totalCheckins": 130,
-      "currentMonthCheckins": 45,
-      "currentWeekCheckins": 15,
-      "favoriteCrop": "carrot",
-      "mostCompletedHabit": "学习编程"
+    {
+      "id": "habit_2",
+      "name": "阅读30分钟",
+      "streak": 14,
+      "totalCompletions": 45,
+      "lastCompleted": "2023-12-15T20:30:00.000Z",
+      "createdAt": "2023-11-10T08:00:00.000Z"
+    },
+    {
+      "id": "habit_3",
+      "name": "学习编程",
+      "streak": 21,
+      "totalCompletions": 60,
+      "lastCompleted": "2023-12-15T19:00:00.000Z",
+      "createdAt": "2023-10-15T08:00:00.000Z"
     }
+  ],
+  "crops": [
+    {
+      "id": "carrot",
+      "plantedAt": "2023-12-10T08:00:00.000Z",
+      "currentGrowth": 5,
+      "harvested": false,
+      "harvestedAt": null
+    }
+  ],
+  "storage": {
+    "carrot": 8,
+    "tomato": 5,
+    "strawberry": 3,
+    "potato": 6,
+    "corn": 2,
+    "grape": 1
+  },
+  "discoveredRecipes": [
+    "recipe_1",
+    "recipe_2"
+  ],
+  "habitStreak": 21,
+  "totalHarvests": 12,
+  "maxHabits": 5,
+  "createdAt": "2023-10-01T08:00:00.000Z",
+  "lastLogin": "2023-12-15T08:00:00.000Z",
+  "statistics": {
+    "totalCheckins": 130,
+    "currentMonthCheckins": 45,
+    "currentWeekCheckins": 15,
+    "favoriteCrop": "carrot",
+    "mostCompletedHabit": "学习编程"
   }
+}

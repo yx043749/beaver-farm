@@ -901,3 +901,261 @@ body {
     animation: spin 1s linear infinite;
     margin-bottom: 15px;
 }
+
+/* 登录状态弹窗特效 */
+.status-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.status-modal.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.status-modal-backdrop {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+}
+
+.status-modal-content {
+    position: relative;
+    background: linear-gradient(135deg, #ffffff, #f8f9fa);
+    border-radius: 16px;
+    width: 90%;
+    max-width: 450px;
+    padding: 0;
+    transform: translateY(30px) scale(0.9);
+    opacity: 0;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+    overflow: hidden;
+}
+
+.status-modal.active .status-modal-content {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+}
+
+.status-modal-header {
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    color: white;
+    padding: 24px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.status-modal-header::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(45deg, 
+        transparent 30%, 
+        rgba(255,255,255,0.1) 50%, 
+        transparent 70%);
+    animation: shimmer 3s infinite linear;
+}
+
+@keyframes shimmer {
+    0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+    100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+}
+
+.status-modal-header h3 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 600;
+    position: relative;
+    z-index: 1;
+}
+
+.status-modal-header p {
+    margin: 8px 0 0;
+    opacity: 0.9;
+    font-size: 0.9rem;
+    position: relative;
+    z-index: 1;
+}
+
+.status-modal-body {
+    padding: 24px;
+}
+
+.status-info-grid {
+    display: grid;
+    gap: 16px;
+}
+
+.status-info-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid #e9ecef;
+    animation: fadeInUp 0.5s ease forwards;
+    opacity: 0;
+    transform: translateY(10px);
+}
+
+.status-info-item:nth-child(1) { animation-delay: 0.1s; }
+.status-info-item:nth-child(2) { animation-delay: 0.2s; }
+.status-info-item:nth-child(3) { animation-delay: 0.3s; }
+.status-info-item:nth-child(4) { animation-delay: 0.4s; }
+.status-info-item:nth-child(5) { animation-delay: 0.5s; }
+
+@keyframes fadeInUp {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.status-info-icon {
+    width: 36px;
+    height: 36px;
+    background: linear-gradient(135deg, var(--primary-light), var(--secondary-light));
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary);
+    font-size: 1rem;
+}
+
+.status-info-content {
+    flex: 1;
+}
+
+.status-info-label {
+    font-size: 0.85rem;
+    color: #6c757d;
+    margin-bottom: 4px;
+}
+
+.status-info-value {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #495057;
+}
+
+.status-progress {
+    margin-top: 20px;
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 20px;
+    animation: fadeIn 0.6s ease 0.6s forwards;
+    opacity: 0;
+}
+
+@keyframes fadeIn {
+    to { opacity: 1; }
+}
+
+.status-progress-label {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    font-size: 0.9rem;
+}
+
+.status-progress-bar {
+    height: 10px;
+    background: #e9ecef;
+    border-radius: 5px;
+    overflow: hidden;
+    position: relative;
+}
+
+.status-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--success), #20c997);
+    border-radius: 5px;
+    width: 0;
+    transition: width 1s ease-out 0.7s;
+    position: relative;
+    overflow: hidden;
+}
+
+.status-progress-fill::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, 
+        transparent 0%, 
+        rgba(255,255,255,0.3) 50%, 
+        transparent 100%);
+    animation: progressShine 2s infinite linear;
+}
+
+@keyframes progressShine {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+.status-modal-footer {
+    padding: 16px 24px;
+    text-align: center;
+    background: #f8f9fa;
+    border-radius: 0 0 16px 16px;
+}
+
+.status-close-btn {
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    color: white;
+    border: none;
+    padding: 12px 32px;
+    border-radius: 50px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(var(--primary-rgb, 0, 123, 255), 0.3);
+}
+
+.status-close-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(var(--primary-rgb, 0, 123, 255), 0.4);
+}
+
+.status-close-btn:active {
+    transform: translateY(0);
+}
+
+/* 响应式调整 */
+@media (max-width: 480px) {
+    .status-modal-content {
+        width: 95%;
+        max-width: 95%;
+    }
+    
+    .status-modal-header {
+        padding: 20px;
+    }
+    
+    .status-modal-body {
+        padding: 20px;
+    }
+}
