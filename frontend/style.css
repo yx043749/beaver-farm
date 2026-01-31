@@ -1159,3 +1159,1391 @@ body {
         padding: 20px;
     }
 }
+
+/* ========== 材料选择器优化 ========== */
+.ingredient-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.ingredient-option {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 8px;
+    background: white;
+    border: 2px solid var(--light);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all 0.3s var(--spring);
+    text-align: center;
+    min-height: 90px;
+}
+
+.ingredient-option:hover {
+    border-color: var(--primary);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-sm);
+}
+
+.ingredient-option.selected {
+    border-color: var(--primary);
+    background: linear-gradient(135deg, rgba(255, 158, 109, 0.1), rgba(255, 158, 109, 0.05));
+    box-shadow: 0 0 0 2px rgba(255, 158, 109, 0.2);
+}
+
+.ingredient-option.disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.ingredient-option.disabled:hover {
+    border-color: var(--light);
+    transform: none;
+    box-shadow: none;
+}
+
+.ingredient-icon {
+    font-size: 2rem;
+    margin-bottom: 8px;
+}
+
+.ingredient-name {
+    font-size: 0.8rem;
+    font-weight: 600;
+    margin-bottom: 5px;
+    color: var(--dark);
+}
+
+.ingredient-count {
+    font-size: 0.75rem;
+    color: var(--primary);
+    font-weight: bold;
+}
+
+.ingredient-count.zero {
+    color: var(--danger);
+}
+
+/* ========== 线索提示样式 ========== */
+.clue-box {
+    background: linear-gradient(135deg, #FFF8E1, #FFECB3);
+    border-left: 4px solid var(--accent);
+    padding: 15px;
+    border-radius: var(--radius-md);
+    margin: 15px 0;
+}
+
+.clue-title {
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+    font-size: 1rem;
+}
+
+.hint-text {
+    color: var(--gray);
+    font-size: 0.9rem;
+    font-style: italic;
+    margin-top: 10px;
+}
+
+/* ========== 研发结果样式 ========== */
+.recipe-reveal {
+    text-align: center;
+    animation: fadeIn 0.6s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.recipe-icon-large {
+    font-size: 4rem;
+    margin-bottom: 20px;
+    animation: bounce 1s ease infinite alternate;
+}
+
+@keyframes bounce {
+    from { transform: scale(0.95); }
+    to { transform: scale(1.05); }
+}
+
+/* ========== 菜谱难度标签 ========== */
+.difficulty-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--light);
+    color: var(--dark);
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+}
+
+.difficulty-badge .star {
+    color: #FFD700;
+}
+
+/* ========== 菜谱锁定状态 ========== */
+.recipe-item.locked {
+    background: linear-gradient(135deg, #FFF8E1, #FFECB3);
+    border-left-color: var(--accent);
+}
+
+.recipe-item.locked:hover {
+    background: linear-gradient(135deg, #FFECB3, #FFE082);
+}
+
+.recipe-item.unlocked {
+    background: linear-gradient(135deg, #E8F5E9, #C8E6C9);
+    border-left-color: var(--success);
+}
+
+.recipe-item.unlocked:hover {
+    background: linear-gradient(135deg, #C8E6C9, #A5D6A7);
+}
+
+/* ========== 研发进度条动画 ========== */
+.status-progress-fill {
+    position: relative;
+    overflow: hidden;
+}
+
+.status-progress-fill::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, 
+        transparent 0%, 
+        rgba(255, 255, 255, 0.3) 50%, 
+        transparent 100%);
+    animation: progressShine 2s infinite linear;
+}
+
+@keyframes progressShine {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+/* ========== 材料不足提示 ========== */
+.material-warning {
+    background: linear-gradient(135deg, #FFEBEE, #FFCDD2);
+    border-left: 4px solid var(--danger);
+    padding: 15px;
+    border-radius: var(--radius-md);
+    margin: 15px 0;
+}
+
+.material-warning-title {
+    color: var(--danger);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+    font-size: 1rem;
+}
+
+/* ========== 研发历史项 ========== */
+.research-history-item {
+    background: white;
+    border-radius: var(--radius-md);
+    padding: 15px;
+    margin-bottom: 10px;
+    border-left: 4px solid var(--primary);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.research-history-item.success {
+    border-left-color: var(--success);
+    background: linear-gradient(135deg, #E8F5E9, #C8E6C9);
+}
+
+.research-history-item.failed {
+    border-left-color: var(--accent);
+    background: linear-gradient(135deg, #FFF8E1, #FFECB3);
+}
+
+/* ========== 研发统计卡片 ========== */
+.research-stat-card {
+    background: linear-gradient(135deg, var(--light), white);
+    border-radius: var(--radius-md);
+    padding: 20px;
+    text-align: center;
+    transition: all 0.3s var(--spring);
+}
+
+.research-stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-md);
+}
+
+.research-stat-value {
+    font-size: 2rem;
+    font-weight: bold;
+    color: var(--primary);
+    margin-bottom: 5px;
+}
+
+.research-stat-label {
+    color: var(--gray);
+    font-size: 0.9rem;
+}
+
+/* ========== 智能推荐按钮 ========== */
+.btn-smart {
+    background: linear-gradient(135deg, #FF9E6D, #FF7F50);
+    color: white;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-smart::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(45deg, 
+        transparent 30%, 
+        rgba(255, 255, 255, 0.2) 50%, 
+        transparent 70%);
+    animation: shimmer 3s infinite linear;
+}
+
+/* ========== 研发动画 ========== */
+@keyframes researchSuccess {
+    0% {
+        transform: scale(0.8);
+        opacity: 0;
+    }
+    50% {
+        transform: scale(1.1);
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.research-success {
+    animation: researchSuccess 0.6s ease-out;
+}
+
+/* ========== 材料库存标签 ========== */
+.storage-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: var(--light);
+    padding: 5px 10px;
+    border-radius: 15px;
+    font-size: 0.8rem;
+    color: var(--dark);
+}
+
+.storage-tag.low {
+    background: #FFEBEE;
+    color: var(--danger);
+}
+
+.storage-tag.medium {
+    background: #FFF8E1;
+    color: #FF8F00;
+}
+
+.storage-tag.high {
+    background: #E8F5E9;
+    color: var(--success);
+}
+
+/* ========== 响应式调整 ========== */
+@media (max-width: 768px) {
+    .ingredient-grid {
+        grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+        gap: 8px;
+    }
+    
+    .ingredient-option {
+        padding: 10px 6px;
+        min-height: 80px;
+    }
+    
+    .ingredient-icon {
+        font-size: 1.8rem;
+    }
+    
+    .recipe-icon-large {
+        font-size: 3rem;
+    }
+    
+    .research-stat-card {
+        padding: 15px;
+    }
+    
+    .research-stat-value {
+        font-size: 1.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .ingredient-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+    
+    .ingredient-option {
+        min-height: 75px;
+    }
+    
+    .recipe-reveal {
+        padding: 10px;
+    }
+    
+    .clue-box {
+        padding: 12px;
+    }
+    
+    .difficulty-badge {
+        font-size: 0.8rem;
+        padding: 3px 8px;
+    }
+}
+
+/* ========== 研发模态框优化 ========== */
+.modal-content.research-modal {
+    max-width: 500px;
+}
+
+.research-modal-header {
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    color: white;
+    padding: 20px;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    margin: -25px -25px 20px -25px;
+}
+
+.research-modal-header h3 {
+    color: white;
+    margin: 0;
+}
+
+/* ========== 材料计数动画 ========== */
+@keyframes countChange {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+
+.count-changing {
+    animation: countChange 0.3s ease;
+}
+
+/* ========== 研发结果特效 ========== */
+.success-sparkle {
+    position: relative;
+}
+
+.success-sparkle::before,
+.success-sparkle::after {
+    content: '✨';
+    position: absolute;
+    font-size: 1.5rem;
+    animation: sparkle 1s ease-in-out infinite alternate;
+}
+
+.success-sparkle::before {
+    left: -30px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.success-sparkle::after {
+    right: -30px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+@keyframes sparkle {
+    from { opacity: 0.3; transform: scale(0.8); }
+    to { opacity: 1; transform: scale(1.2); }
+}
+
+/* ========== 线索解锁动画 ========== */
+@keyframes clueUnlock {
+    0% {
+        opacity: 0;
+        transform: translateY(20px) rotateX(90deg);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) rotateX(0);
+    }
+}
+
+.clue-unlocking {
+    animation: clueUnlock 0.5s ease-out forwards;
+}
+
+/* ========== 研发按钮状态 ========== */
+.btn-research:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+.btn-research:disabled:hover {
+    box-shadow: none;
+}
+
+/* ========== 网络状态提示 ========== */
+.network-status {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    padding: 12px 20px;
+    text-align: center;
+    font-weight: 600;
+    z-index: 9999;
+    transform: translateY(-100%);
+    transition: transform 0.3s var(--spring);
+    font-size: 0.9rem;
+    backdrop-filter: blur(10px);
+}
+
+.network-status.online {
+    background: linear-gradient(135deg, rgba(135, 211, 124, 0.9), rgba(88, 214, 141, 0.9));
+    color: white;
+    transform: translateY(0);
+}
+
+.network-status.offline {
+    background: linear-gradient(135deg, rgba(255, 107, 107, 0.9), rgba(236, 112, 99, 0.9));
+    color: white;
+    transform: translateY(0);
+}
+
+/* ========== 页面头部 ========== */
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+/* ========== 卡片内容 ========== */
+.card-subtitle {
+    color: var(--gray);
+    margin-bottom: 20px;
+    line-height: 1.5;
+}
+
+.loading-placeholder {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--gray);
+}
+
+.loading-placeholder i {
+    font-size: 2.5rem;
+    margin-bottom: 15px;
+    opacity: 0.5;
+}
+
+.loading-placeholder p {
+    margin: 0;
+    font-size: 1rem;
+}
+
+/* ========== 作物选项增强 ========== */
+.crop-option {
+    background: white;
+    border: 2px solid var(--light);
+    border-radius: var(--radius-lg);
+    padding: 25px 20px;
+    text-align: center;
+    transition: all 0.3s var(--spring);
+    cursor: pointer;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.crop-option:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--primary);
+}
+
+.crop-option.selected {
+    border-color: var(--primary);
+    background: linear-gradient(135deg, rgba(255, 158, 109, 0.1), rgba(255, 158, 109, 0.05));
+    position: relative;
+}
+
+.crop-option.selected::before {
+    content: '✓ 当前种植';
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(135deg, var(--primary), #FF7F50);
+    color: white;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.crop-option.disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.crop-option.disabled:hover {
+    transform: none;
+    box-shadow: none;
+    border-color: var(--light);
+}
+
+.crop-icon {
+    font-size: 3rem;
+    margin-bottom: 15px;
+    transition: transform 0.3s var(--spring);
+    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1));
+}
+
+.crop-option:hover .crop-icon {
+    transform: scale(1.1);
+}
+
+.crop-description-short {
+    color: var(--gray);
+    font-size: 0.95rem;
+    margin: 10px 0 15px;
+    flex-grow: 1;
+    line-height: 1.5;
+}
+
+.crop-stats-short {
+    padding: 12px;
+    border-radius: var(--radius-md);
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.9rem;
+}
+
+.crop-stats-short span {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.crop-stats-short i {
+    font-size: 0.8rem;
+}
+
+.crop-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin-top: auto;
+}
+
+/* ========== 当前作物状态 ========== */
+.no-crop {
+    text-align: center;
+    padding: 40px 20px;
+}
+
+.no-crop .crop-icon {
+    font-size: 3.5rem;
+    margin-bottom: 20px;
+    color: var(--gray);
+}
+
+.no-crop h3 {
+    margin: 15px 0;
+    color: var(--dark);
+}
+
+.no-crop p {
+    color: var(--gray);
+    margin: 0;
+}
+
+.current-crop {
+    text-align: center;
+}
+
+.crop-icon-large {
+    font-size: 4rem;
+    margin-bottom: 15px;
+    transition: transform 0.3s var(--spring);
+    filter: drop-shadow(0 8px 16px rgba(0,0,0,0.1));
+}
+
+.current-crop h3 {
+    margin: 0 0 20px 0;
+    font-size: 1.4rem;
+    color: var(--dark);
+}
+
+.progress-section {
+    margin: 25px 0;
+}
+
+.progress-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    font-size: 0.95rem;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 10px;
+    background: #E0E0E0;
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--success), var(--accent));
+    border-radius: 5px;
+    transition: width 0.5s var(--spring);
+}
+
+.crop-info-grid {
+    background: var(--light);
+    padding: 20px;
+    border-radius: var(--radius-lg);
+    margin: 25px 0;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+}
+
+.info-item {
+    text-align: center;
+}
+
+.info-label {
+    font-size: 0.9rem;
+    color: var(--gray);
+    margin-bottom: 5px;
+}
+
+.info-value {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--dark);
+}
+
+.info-value.highlight {
+    color: var(--primary);
+    font-size: 1.3rem;
+}
+
+.crop-actions-group {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin: 25px 0;
+    flex-wrap: wrap;
+}
+
+.crop-hint {
+    color: var(--gray);
+    font-size: 0.9rem;
+    margin: 15px 0 0;
+    line-height: 1.5;
+}
+
+/* ========== 习惯管理增强 ========== */
+.no-habits {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--gray);
+}
+
+.no-habits i {
+    font-size: 2.5rem;
+    margin-bottom: 15px;
+    opacity: 0.5;
+}
+
+.no-habits p {
+    margin: 0;
+    font-size: 1rem;
+}
+
+.habit-item {
+    background: white;
+    border: 2px solid var(--light);
+    border-radius: var(--radius-md);
+    padding: 18px 20px;
+    margin-bottom: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.3s var(--spring);
+}
+
+.habit-item:hover {
+    border-color: var(--primary);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-sm);
+}
+
+.habit-info h4 {
+    margin: 0 0 8px 0;
+    color: var(--dark);
+    font-size: 1.1rem;
+}
+
+.habit-stats {
+    display: flex;
+    gap: 15px;
+    font-size: 0.85rem;
+    color: var(--gray);
+}
+
+.habit-stats span {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.habit-stats i {
+    font-size: 0.8rem;
+}
+
+.habit-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.habits-footer {
+    margin-top: 25px;
+    text-align: center;
+}
+
+.habits-counter {
+    color: var(--gray);
+    font-size: 0.9rem;
+    margin-top: 12px;
+}
+
+/* ========== 错误消息 ========== */
+.error-message {
+    text-align: center;
+    padding: 30px 20px;
+    color: var(--danger);
+    background: linear-gradient(135deg, rgba(255, 107, 107, 0.1), rgba(236, 112, 99, 0.05));
+    border-radius: var(--radius-md);
+    margin: 20px 0;
+    border-left: 4px solid var(--danger);
+}
+
+.error-message i {
+    font-size: 2rem;
+    margin-bottom: 15px;
+}
+
+/* ========== 弹窗系统增强 ========== */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s var(--spring);
+    backdrop-filter: blur(5px);
+}
+
+.modal-overlay.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+.modal {
+    background: white;
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-lg);
+    width: 90%;
+    max-width: 500px;
+    max-height: 80vh;
+    overflow-y: auto;
+    transform: translateY(-20px) scale(0.95);
+    transition: transform 0.4s var(--spring);
+}
+
+.modal-overlay.show .modal {
+    transform: translateY(0) scale(1);
+}
+
+.modal-header {
+    padding: 24px;
+    border-bottom: 1px solid var(--light);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    background: white;
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+    z-index: 1;
+}
+
+.modal-header h3 {
+    margin: 0;
+    font-size: 1.4rem;
+    color: var(--dark);
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 1.3rem;
+    cursor: pointer;
+    color: var(--gray);
+    padding: 0;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s var(--spring);
+    flex-shrink: 0;
+}
+
+.modal-close:hover {
+    background: var(--light);
+    color: var(--danger);
+}
+
+.modal-body {
+    padding: 24px;
+}
+
+.modal-footer {
+    padding: 20px 24px;
+    border-top: 1px solid var(--light);
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    position: sticky;
+    bottom: 0;
+    background: white;
+    border-radius: 0 0 var(--radius-xl) var(--radius-xl);
+}
+
+/* ========== 确认弹窗 ========== */
+.confirm-modal {
+    padding: 10px;
+}
+
+.modal-icon {
+    text-align: center;
+    font-size: 3.5rem;
+    margin-bottom: 25px;
+    animation: pulse 2s infinite;
+}
+
+.modal-icon.warning {
+    color: #FFA726;
+}
+
+.modal-icon.success {
+    color: var(--success);
+}
+
+.modal-icon.error {
+    color: var(--danger);
+}
+
+.modal-icon.info {
+    color: var(--primary);
+}
+
+.modal-message {
+    text-align: center;
+    color: var(--gray);
+    margin-bottom: 30px;
+    line-height: 1.6;
+    font-size: 1.05rem;
+}
+
+/* ========== 输入弹窗 ========== */
+.input-modal .input-group {
+    margin-bottom: 25px;
+}
+
+.input-modal input,
+.input-modal textarea {
+    width: 100%;
+    padding: 14px 16px;
+    border: 2px solid var(--light);
+    border-radius: var(--radius-md);
+    font-size: 1rem;
+    transition: all 0.3s var(--spring);
+    font-family: inherit;
+}
+
+.input-modal input:focus,
+.input-modal textarea:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(255, 158, 109, 0.1);
+}
+
+.input-modal input::placeholder,
+.input-modal textarea::placeholder {
+    color: var(--gray);
+}
+
+/* ========== 作物详情弹窗 ========== */
+.crop-detail-modal .crop-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.crop-detail-modal .crop-icon {
+    font-size: 4.5rem;
+    margin-bottom: 20px;
+    animation: float 3s var(--spring) infinite;
+}
+
+.crop-detail-modal .crop-name {
+    font-size: 1.6rem;
+    margin-bottom: 10px;
+    color: var(--dark);
+}
+
+.crop-detail-modal .crop-description {
+    color: var(--gray);
+    margin-bottom: 25px;
+    font-size: 1.05rem;
+    line-height: 1.5;
+}
+
+.crop-detail-modal .crop-stats {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+    margin-bottom: 30px;
+}
+
+.crop-detail-modal .stat-item {
+    background: var(--light);
+    padding: 20px 15px;
+    border-radius: var(--radius-lg);
+    text-align: center;
+    transition: transform 0.3s var(--spring);
+}
+
+.crop-detail-modal .stat-item:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-sm);
+}
+
+.crop-detail-modal .stat-label {
+    font-size: 0.9rem;
+    color: var(--gray);
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.crop-detail-modal .stat-value {
+    font-size: 1.3rem;
+    font-weight: bold;
+    color: var(--dark);
+}
+
+.crop-instructions {
+    background: var(--light);
+    padding: 20px;
+    border-radius: var(--radius-lg);
+    margin-top: 25px;
+}
+
+.crop-instructions h4 {
+    margin: 0 0 12px 0;
+    color: var(--dark);
+    font-size: 1.1rem;
+}
+
+.crop-instructions p {
+    color: var(--gray);
+    margin: 0;
+    line-height: 1.6;
+    font-size: 0.95rem;
+}
+
+/* ========== 通知系统增强 ========== */
+#notificationContainer {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9998;
+    max-width: 350px;
+}
+
+.notification {
+    background: white;
+    border-radius: var(--radius-lg);
+    padding: 18px 20px;
+    margin-bottom: 12px;
+    box-shadow: var(--shadow-lg);
+    border-left: 4px solid;
+    transform: translateX(400px);
+    opacity: 0;
+    transition: all 0.4s var(--spring);
+}
+
+.notification.show {
+    transform: translateX(0);
+    opacity: 1;
+}
+
+.notification.success {
+    border-left-color: var(--success);
+    background: linear-gradient(135deg, #E8F5E9, #C8E6C9);
+}
+
+.notification.error {
+    border-left-color: var(--danger);
+    background: linear-gradient(135deg, #FFEBEE, #FFCDD2);
+}
+
+.notification.info {
+    border-left-color: var(--primary);
+    background: linear-gradient(135deg, #E3F2FD, #BBDEFB);
+}
+
+.notification-content {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.notification-content i {
+    font-size: 1.3rem;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.notification.success .notification-content i {
+    color: var(--success);
+}
+
+.notification.error .notification-content i {
+    color: var(--danger);
+}
+
+.notification.info .notification-content i {
+    color: var(--primary);
+}
+
+.notification-content div {
+    flex: 1;
+    line-height: 1.5;
+    font-size: 0.95rem;
+}
+
+/* ========== 按钮悬停效果增强 ========== */
+.btn-primary:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(255, 158, 109, 0.3);
+}
+
+.btn-danger:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(255, 107, 107, 0.3);
+}
+
+.btn-success:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(135, 211, 124, 0.3);
+}
+
+/* ========== 自定义滚动条 ========== */
+.modal::-webkit-scrollbar {
+    width: 8px;
+}
+
+.modal::-webkit-scrollbar-track {
+    background: var(--light);
+    border-radius: 4px;
+}
+
+.modal::-webkit-scrollbar-thumb {
+    background: var(--primary);
+    border-radius: 4px;
+    transition: background 0.3s;
+}
+
+.modal::-webkit-scrollbar-thumb:hover {
+    background: #FF7F50;
+}
+
+/* ========== 响应式设计 ========== */
+@media (max-width: 768px) {
+    .header-content {
+        flex-direction: column;
+        align-items: stretch;
+        text-align: center;
+    }
+    
+    .header-content > div:first-child {
+        order: 2;
+    }
+    
+    .header-content > div:last-child {
+        order: 1;
+        display: flex;
+        justify-content: center;
+    }
+    
+    .crop-option {
+        min-height: 120px;
+        padding: 15px;
+    }
+    
+    .crop-actions {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .crop-actions-group {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .crop-actions-group .btn {
+        width: 100%;
+        max-width: 250px;
+    }
+    
+    .habit-item {
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
+    }
+    
+    .habit-info {
+        width: 100%;
+    }
+    
+    .habit-stats {
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+    
+    .modal {
+        width: 95%;
+        max-height: 85vh;
+    }
+    
+    .modal-header {
+        padding: 20px;
+    }
+    
+    .modal-body {
+        padding: 20px;
+    }
+    
+    .modal-footer {
+        padding: 15px 20px;
+        flex-wrap: wrap;
+    }
+    
+    .modal-footer .btn {
+        flex: 1;
+        min-width: 120px;
+    }
+    
+    #notificationContainer {
+        left: 20px;
+        right: 20px;
+        max-width: none;
+    }
+    
+    .notification {
+        padding: 15px;
+    }
+}
+
+@media (max-width: 480px) {
+    .crop-info-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+    
+    .crop-detail-modal .crop-stats {
+        grid-template-columns: 1fr;
+    }
+    
+    .modal-header h3 {
+        font-size: 1.2rem;
+    }
+    
+    .modal-footer {
+        flex-direction: column;
+    }
+    
+    .modal-footer .btn {
+        width: 100%;
+    }
+}
+
+/* 难度指示器 */
+.difficulty-indicator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin: 8px 0;
+    font-size: 0.85rem;
+}
+
+.difficulty-stars {
+    color: #FFD700;
+    font-size: 1.1rem;
+    letter-spacing: 2px;
+}
+
+.difficulty-text {
+    color: var(--gray);
+    font-weight: 500;
+}
+
+/* 季节标签 */
+.seasons-tags {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    margin: 10px 0;
+    flex-wrap: wrap;
+}
+
+.season-tag {
+    background: linear-gradient(135deg, var(--secondary), #5DADE2);
+    color: white;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+/* 特殊作物标记 */
+.special-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: linear-gradient(135deg, #FFD700, #FFA500);
+    color: white;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    z-index: 1;
+    box-shadow: 0 2px 8px rgba(255, 215, 0, 0.3);
+}
+
+/* 作物统计行 */
+.crop-stats-short .stat-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 5px 0;
+}
+
+.crop-stats-short .stat-row:first-child {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    margin-bottom: 5px;
+}
+
+/* 作物价值 */
+.crop-value {
+    margin: 10px 0;
+    font-size: 0.9rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+}
+
+/* 种植提示 */
+.planting-hint {
+    color: var(--gray);
+    font-size: 0.85rem;
+    text-align: center;
+    padding: 8px;
+    background: var(--light);
+    border-radius: var(--radius-sm);
+    margin: 5px 0;
+}
+
+/* 移动端适配 */
+@media (max-width: 768px) {
+    .difficulty-indicator {
+        flex-direction: column;
+        gap: 4px;
+    }
+    
+    .seasons-tags {
+        gap: 4px;
+    }
+    
+    .season-tag {
+        padding: 2px 6px;
+        font-size: 0.7rem;
+    }
+    
+    .special-badge {
+        top: 5px;
+        right: 5px;
+        font-size: 0.7rem;
+        padding: 2px 6px;
+    }
+    
+    .crop-stats-short {
+        font-size: 0.85rem;
+    }
+    
+    .crop-value {
+        font-size: 0.85rem;
+    }
+}

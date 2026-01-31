@@ -3,60 +3,145 @@
         "id": "carrot",
         "name": "胡萝卜",
         "icon": "🥕",
-        "description": "快速生长的根茎类蔬菜",
+        "description": "快速生长的根茎类蔬菜，富含维生素A，有助于视力健康",
         "growthTime": 7,
         "harvestAmount": 3,
         "color": "#FF8C00",
-        "difficulty": 1
+        "difficulty": 1,
+        "requirements": {
+            "light": "中等",
+            "water": "中等",
+            "care": "每天浇水1次"
+        },
+        "tips": "适合初学者，生长周期短，收获稳定",
+        "seasons": ["春季", "秋季"],
+        "value": 1
     },
     {
         "id": "tomato",
         "name": "番茄",
         "icon": "🍅",
-        "description": "需要较多阳光的红色果实",
+        "description": "需要较多阳光的红色果实，富含番茄红素和维生素C",
         "growthTime": 10,
         "harvestAmount": 5,
         "color": "#FF4500",
-        "difficulty": 1
+        "difficulty": 1,
+        "requirements": {
+            "light": "充足",
+            "water": "较多",
+            "care": "每天浇水2次，需要支架"
+        },
+        "tips": "需定期修剪侧枝，果实变红即可收获",
+        "seasons": ["春季", "夏季"],
+        "value": 2
     },
     {
         "id": "strawberry",
         "name": "草莓",
         "icon": "🍓",
-        "description": "甜美的心形浆果",
+        "description": "甜美的心形浆果，含有丰富的维生素C和抗氧化剂",
         "growthTime": 14,
         "harvestAmount": 8,
         "color": "#FF6B6B",
-        "difficulty": 2
+        "difficulty": 2,
+        "requirements": {
+            "light": "充足",
+            "water": "适中",
+            "care": "每天浇水1次，保持土壤湿润"
+        },
+        "tips": "需要排水良好的土壤，果实成熟后要及时采摘",
+        "seasons": ["春季"],
+        "value": 3
     },
     {
         "id": "potato",
         "name": "土豆",
         "icon": "🥔",
-        "description": "地下生长的淀粉类食物",
+        "description": "地下生长的淀粉类食物，富含碳水化合物和钾",
         "growthTime": 12,
         "harvestAmount": 6,
         "color": "#8B4513",
-        "difficulty": 2
+        "difficulty": 2,
+        "requirements": {
+            "light": "中等",
+            "water": "适中",
+            "care": "每2天浇水1次"
+        },
+        "tips": "种植深度要足够，叶子枯黄时即可收获",
+        "seasons": ["春季", "夏季"],
+        "value": 2
     },
     {
         "id": "corn",
         "name": "玉米",
         "icon": "🌽",
-        "description": "高大的谷物类作物",
+        "description": "高大的谷物类作物，提供膳食纤维和维生素B",
         "growthTime": 18,
         "harvestAmount": 4,
         "color": "#FFD700",
-        "difficulty": 3
+        "difficulty": 3,
+        "requirements": {
+            "light": "充足",
+            "water": "较多",
+            "care": "每天浇水1-2次，需授粉"
+        },
+        "tips": "需要足够的空间生长，玉米须变褐色时成熟",
+        "seasons": ["夏季"],
+        "value": 4
     },
     {
         "id": "grape",
         "name": "葡萄",
         "icon": "🍇",
-        "description": "需要支架的藤蔓类水果",
+        "description": "需要支架的藤蔓类水果，富含抗氧化剂和维生素",
         "growthTime": 25,
         "harvestAmount": 10,
         "color": "#9370DB",
-        "difficulty": 3
+        "difficulty": 3,
+        "requirements": {
+            "light": "充足",
+            "water": "适中",
+            "care": "每天浇水1次，需要支架支撑"
+        },
+        "tips": "需要耐心等待，但收获量大，适合长期培养",
+        "seasons": ["夏季", "秋季"],
+        "value": 5
+    },
+    {
+        "id": "sunflower",
+        "name": "向日葵",
+        "icon": "🌻",
+        "description": "象征阳光与希望的花朵，总是面向太阳生长",
+        "growthTime": 21,
+        "harvestAmount": 1,
+        "color": "#FFC300",
+        "difficulty": 2,
+        "requirements": {
+            "light": "充足",
+            "water": "适中",
+            "care": "每天浇水1次"
+        },
+        "tips": "特殊奖励作物，收获时可获得额外专注时间奖励",
+        "seasons": ["夏季"],
+        "value": 3,
+        "special": true
+    },
+    {
+        "id": "cactus",
+        "name": "仙人掌",
+        "icon": "🌵",
+        "description": "耐旱的沙漠植物，象征坚韧不拔的精神",
+        "growthTime": 5,
+        "harvestAmount": 1,
+        "color": "#228B22",
+        "difficulty": 1,
+        "requirements": {
+            "light": "充足",
+            "water": "较少",
+            "care": "每3天浇水1次"
+        },
+        "tips": "低维护作物，适合忙碌的用户",
+        "seasons": ["全年"],
+        "value": 1
     }
 ]

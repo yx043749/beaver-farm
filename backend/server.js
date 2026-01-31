@@ -6,7 +6,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3005;
 const SECRET_KEY = 'beaver-farm-secret-key-2023';
 const USERS_DIR = path.join(__dirname, 'users');
 const LOGIN_EXPIRY_DAYS = 30; // 30天登录有效期
@@ -454,6 +454,42 @@ app.post('/api/plant-crop', authenticateToken, async (req, res) => {
     }
 });
 
+// 11. 放弃作物
+app.post('/api/abandon-crop', authenticateToken, async (req, res) => {
+    try {
+        const username = req.user.username;
+        const userFile = path.join(USERS_DIR, `${username}.json`);
+        
+        const userData = JSON.parse(await fs.readFile(userFile, 'utf8'));
+        
+        // 检查是否有作物在种植
+        if (!userData.crops || userData.crops.length === 0) {
+            return res.status(400).json({ error: '没有作物在种植' });
+        }
+        
+        const currentCrop = userData.crops[0];
+        if (currentCrop.harvested) {
+            return res.status(400).json({ error: '作物已收获' });
+        }
+        
+        // 标记为已收获（实际上是被放弃）
+        currentCrop.harvested = true;
+        currentCrop.harvestedAt = new Date().toISOString();
+        currentCrop.abandoned = true;
+        
+        await fs.writeFile(userFile, JSON.stringify(userData, null, 2));
+        
+        res.json({ 
+            success: true, 
+            message: '作物已放弃',
+            abandonedCrop: currentCrop 
+        });
+    } catch (error) {
+        console.error('放弃作物错误:', error);
+        res.status(500).json({ error: '放弃作物失败' });
+    }
+});
+
 // 11. 收获作物
 app.post('/api/harvest-crop', authenticateToken, async (req, res) => {
     try {
@@ -503,14 +539,14 @@ app.post('/api/harvest-crop', authenticateToken, async (req, res) => {
     }
 });
 
-// 12. 研发菜谱（返回线索而不是材料）
+// 12. 研发菜谱（改进版）
 app.post('/api/research-recipe', authenticateToken, async (req, res) => {
     try {
         const username = req.user.username;
         const userFile = path.join(USERS_DIR, `${username}.json`);
         
         const userData = JSON.parse(await fs.readFile(userFile, 'utf8'));
-        const { recipeId, usedIngredients } = req.body; // 改为用户尝试的材料
+        const { recipeId, usedIngredients } = req.body;
         
         const recipeData = recipesData.find(r => r.id === recipeId);
         if (!recipeData) {
@@ -522,23 +558,44 @@ app.post('/api/research-recipe', authenticateToken, async (req, res) => {
             return res.status(400).json({ error: '菜谱已经解锁' });
         }
         
+        // 获取研发历史，用于控制线索显示
+        const researchHistory = userData.researchHistory || {};
+        if (!researchHistory[recipeId]) {
+            researchHistory[recipeId] = {
+                attempts: 0,
+                revealedClues: 0
+            };
+        }
+        
+        researchHistory[recipeId].attempts += 1;
+        
         // 检查用户尝试的材料是否正确
         const isCorrect = checkRecipeIngredients(recipeData, usedIngredients);
         
         if (isCorrect) {
             // 检查材料是否足够
+            const missingMaterials = [];
             for (const ing of recipeData.ingredients) {
                 if ((userData.storage[ing.cropId] || 0) < ing.quantity) {
                     const crop = cropsData.find(c => c.id === ing.cropId);
-                    return res.status(400).json({ 
-                        error: `${crop.name}不足，请继续探索` 
-                    });
+                    missingMaterials.push(`${crop.name} 需要 ${ing.quantity}个，你只有 ${userData.storage[ing.cropId] || 0}个`);
                 }
+            }
+            
+            if (missingMaterials.length > 0) {
+                return res.status(400).json({ 
+                    success: false,
+                    message: '材料不足',
+                    missing: missingMaterials
+                });
             }
             
             // 扣除材料
             for (const ing of recipeData.ingredients) {
                 userData.storage[ing.cropId] -= ing.quantity;
+                if (userData.storage[ing.cropId] <= 0) {
+                    delete userData.storage[ing.cropId];
+                }
             }
             
             // 解锁菜谱
@@ -546,6 +603,11 @@ app.post('/api/research-recipe', authenticateToken, async (req, res) => {
             
             // 每解锁一个菜谱，增加一个习惯位
             userData.maxHabits = Math.min(10, 3 + userData.discoveredRecipes.length);
+            
+            // 更新研发历史
+            researchHistory[recipeId].success = true;
+            researchHistory[recipeId].unlockedAt = new Date().toISOString();
+            userData.researchHistory = researchHistory;
             
             await fs.writeFile(userFile, JSON.stringify(userData, null, 2));
             
@@ -556,40 +618,118 @@ app.post('/api/research-recipe', authenticateToken, async (req, res) => {
                     name: recipeData.name,
                     icon: recipeData.icon,
                     description: recipeData.hints[0],
-                    ingredients: recipeData.ingredients // 解锁后才显示具体材料
+                    ingredients: recipeData.ingredients
                 },
                 storage: userData.storage,
                 maxHabits: userData.maxHabits
             });
+            
         } else {
             // 研发失败，给予线索
-            const clueIndex = Math.min(userData.discoveredRecipes.length, recipeData.clues.length - 1);
+            const currentAttempts = researchHistory[recipeId].attempts;
+            const revealedClues = researchHistory[recipeId].revealedClues;
+            
+            // 根据尝试次数逐渐揭示线索
+            let clue = "";
+            let hint = "";
+            
+            if (currentAttempts === 1) {
+                // 第一次尝试：给予通用提示
+                clue = "尝试不同的材料组合。需要的材料种类：" + recipeData.ingredients.length + "种";
+            } else if (currentAttempts === 2) {
+                // 第二次尝试：给予数量提示
+                const totalItems = recipeData.ingredients.reduce((sum, ing) => sum + ing.quantity, 0);
+                clue = `总食材数量：${totalItems}个`;
+                researchHistory[recipeId].revealedClues = 1;
+            } else if (currentAttempts === 3) {
+                // 第三次尝试：给予具体线索
+                clue = recipeData.clues?.[0] || "继续探索吧！";
+                researchHistory[recipeId].revealedClues = 2;
+            } else if (currentAttempts >= 4) {
+                // 后续尝试：逐渐揭示更多线索
+                const clueIndex = Math.min(revealedClues, (recipeData.clues?.length || 1) - 1);
+                clue = recipeData.clues?.[clueIndex] || "仔细观察材料库存的变化";
+                researchHistory[recipeId].revealedClues = revealedClues + 1;
+            }
+            
+            // 添加难度提示
+            hint = `难度：${"★".repeat(recipeData.difficulty)}`;
+            
+            // 添加库存对比提示
+            const requiredCrops = recipeData.ingredients.map(ing => ing.cropId);
+            const overlap = usedIngredients.filter(item => requiredCrops.includes(item)).length;
+            
+            if (usedIngredients.length > 0) {
+                if (overlap > 0) {
+                    clue += ` (已有 ${overlap}/${requiredCrops.length} 种正确材料)`;
+                } else {
+                    clue += " (当前没有正确材料)";
+                }
+            }
+            
+            userData.researchHistory = researchHistory;
+            await fs.writeFile(userFile, JSON.stringify(userData, null, 2));
+            
             res.json({ 
                 success: false,
                 message: '研发失败，继续探索吧！',
-                clue: recipeData.clues[clueIndex],
-                hint: `难度: ${recipeData.difficulty}星`
+                clue: clue,
+                hint: hint,
+                attempts: currentAttempts,
+                progress: Math.min(100, (revealedClues / 3) * 100)
             });
         }
+        
     } catch (error) {
         console.error('研发菜谱错误:', error);
         res.status(500).json({ error: '研发菜谱失败' });
     }
 });
 
-// 辅助函数：检查配方匹配
+// 改进的配方检查函数
 function checkRecipeIngredients(recipe, usedIngredients) {
     if (!usedIngredients || !Array.isArray(usedIngredients)) return false;
     
-    // 简化的检查逻辑：需要用户传递尝试的材料组合
-    // 实际应该更复杂的匹配逻辑
-    const usedSet = new Set(usedIngredients);
+    // 检查材料种类是否匹配
     const requiredCrops = recipe.ingredients.map(ing => ing.cropId);
     
-    // 检查是否有重叠
-    const overlap = requiredCrops.filter(crop => usedSet.has(crop)).length;
-    return overlap >= Math.min(2, requiredCrops.length);
+    // 用户选择的材料必须包含所有需要的材料种类
+    if (usedIngredients.length < requiredCrops.length) {
+        return false;
+    }
+    
+    // 检查是否包含了所有需要的材料种类
+    for (const cropId of requiredCrops) {
+        if (!usedIngredients.includes(cropId)) {
+            return false;
+        }
+    }
+    
+    // 检查是否选择了多余的材料（可选，如果允许额外材料则注释掉）
+    if (usedIngredients.length > requiredCrops.length) {
+        return false; // 不允许额外材料
+    }
+    
+    return true;
 }
+
+// 13. 获取研发历史
+app.get('/api/research-history', authenticateToken, async (req, res) => {
+    try {
+        const username = req.user.username;
+        const userFile = path.join(USERS_DIR, `${username}.json`);
+        
+        const userData = JSON.parse(await fs.readFile(userFile, 'utf8'));
+        
+        res.json({
+            success: true,
+            history: userData.researchHistory || {}
+        });
+    } catch (error) {
+        console.error('获取研发历史错误:', error);
+        res.status(500).json({ error: '获取研发历史失败' });
+    }
+});
 
 // 辅助函数：检查是否是昨天
 function isYesterday(dateString) {
